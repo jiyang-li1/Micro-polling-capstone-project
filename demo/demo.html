@@ -1,0 +1,46 @@
+
+<html>
+<head>
+  <title>Location</title>
+</head>
+<body>
+  <h2>Location</h2>
+
+  <form method="post" action="./location/test.html">
+    <input
+      type="text"
+      name="postal_code"
+      placeholder="Enter postal code"
+    >
+    <button type="submit">Continue</button>
+  </form>
+
+
+  <button onclick="getLocation()">Use current location</button>
+
+  <form id="geoForm" method="post" action="./location/test.html">
+    <input type="hidden" name="lat" id="lat">
+    <input type="hidden" name="lng" id="lng">
+  </form>
+
+  <script>
+    function getLocation() {
+      if (!navigator.geolocation) {
+        alert("Geolocation is not supported by your browser");
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          document.getElementById("lat").value = position.coords.latitude;
+          document.getElementById("lng").value = position.coords.longitude;
+          document.getElementById("geoForm").submit();
+        },
+        () => {
+          alert("Location access denied");
+        }
+      );
+    }
+  </script>
+</body>
+</html>
