@@ -20,3 +20,9 @@ flask
 ```{bash}
 flask --app {name} run 
 ```
+
+### 2 Need for action
+
+1  Create database  
+2  Link frontend to database (get response / create web api)  
+3  Create poll page by template
