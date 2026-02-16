@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ poll.title }} - Micro Poll System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 700px;
+            margin: 50px auto;
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        
+        h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 32px;
+        }
+        
+        h4 {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 20px;
+            font-weight: normal;
+        }
+        
+        form {
+            margin-bottom: 30px;
+        }
+        
+        button {
+            display: block;
+            width: 100%;
+            padding: 18px;
+            margin: 12px 0;
+            font-size: 18px;
+            font-weight: bold;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        button:hover {
+            background: #0056b3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,123,255,0.3);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        .info {
+            margin-top: 30px;
+            padding: 15px;
+            background: #e9ecef;
+            border-radius: 8px;
+            font-size: 14px;
+            color: #666;
+            border-left: 4px solid #007bff;
+        }
+        
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            color: #007bff;
+            text-decoration: none;
+            font-size: 16px;
+        }
+        
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>{{ poll.title }}</h2>
+        <h4>{{ poll.question }}</h4>
+        
+        <form method="POST" action="{{ url_for('submit_vote', poll_id=poll.id) }}">
+            {% for option in poll.get_options() %}
+            <button type="submit" name="choice" value="{{ loop.index0 }}">
+                {{ option }}
+            </button>
+            {% endfor %}
+        </form>
+        
+        <div class="info">
+            Poll: <strong>{{ poll.zip_code }}</strong> | 
+            Created time: {{ poll.created_at.strftime('%Y年%m月%d日 %H:%M') }} | 
+            Poll ID: {{ poll.id }}
+        </div>
+        
+        <a href="{{ url_for('index') }}" class="back-link">← Back to Homepage</a>
+    </div>
+</body>
+</html>
