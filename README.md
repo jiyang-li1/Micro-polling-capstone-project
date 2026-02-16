@@ -11,18 +11,15 @@ python -m venv {venv name}
 ./{venv name}/Scripts/activate
 ```
 3 install all the package in the venv  
- Backend framework and sql  
+Flask and sqlalchemy
 4 Run .py in venv  
-5 Run the flask
-```{bash}
-flask
-```
-```{bash}
-flask --app {name} run 
-```
+Run db_init.py
+model.py
+main.py
 
 ### 2 Need for action
 
-1  Create database  
-2  Link frontend to database (get response / create web api)  
-3  Create poll page by template
+1  Make a admin page to the result  
+2  UI Style  
+3  Create a exe easy to update
+4  More detailed Admin panel

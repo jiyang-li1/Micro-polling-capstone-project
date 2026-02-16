@@ -8,9 +8,6 @@ Base = declarative_base()
 
 class Poll(Base):
     """
-    投票表
-    
-    字段说明：
     - id: Poll id, primary key
     - zip_code: 5-digit zip code (string)
     - title: Poll title
