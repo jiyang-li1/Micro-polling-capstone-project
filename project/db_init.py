@@ -45,7 +45,7 @@ polls_data = [
     },
     {
         "zip_code": "22222",
-        "title": "Test Poll5",  ！
+        "title": "Test Poll5", 
         "question": "Test question5",
         "options": ["Yes", "No", "Need More Info"],
         "created_at": datetime(2026, 2, 2, 2, 2, 2)
