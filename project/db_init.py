@@ -36,7 +36,6 @@ polls_data = [
         "created_at": datetime(2026, 1, 1, 1, 1, 1)  
     },
     
-    # 邮编 10001 的投票（Manhattan, NY）
     {
         "zip_code": "22222",
         "title": "Test Poll4",
@@ -46,7 +45,7 @@ polls_data = [
     },
     {
         "zip_code": "22222",
-        "title": "Test Poll5",  # 🔴 最新的！
+        "title": "Test Poll5",  ！
         "question": "Test question5",
         "options": ["Yes", "No", "Need More Info"],
         "created_at": datetime(2026, 2, 2, 2, 2, 2)
