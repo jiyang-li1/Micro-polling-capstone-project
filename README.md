@@ -30,3 +30,5 @@ No way to fetch the data unless manualy enter http://10.44.61.169:5000/poll/1/re
 Can not verify the admin  
 Ugly ui  
 Create a delete vote data function for testing
+
+### Only zip code 11111,22222,33333,44444,55555 has poll data
