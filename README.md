@@ -21,7 +21,7 @@ main.py
 ### 2 Need for action
 
 1  Make a admin page to the result  
-2  UI Style  
+2  New UI Style  
 3  Create a exe easy to update or in the admin panel
 4  More detailed Admin panel  
 
