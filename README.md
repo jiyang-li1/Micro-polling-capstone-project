@@ -29,4 +29,4 @@ main.py
 No way to fetch the data unless manualy enter http://10.44.61.169:5000/poll/1/results  
 Can not verify the admin  
 Ugly ui  
-Create a delete vote data for testing
+Create a delete vote data function for testing
