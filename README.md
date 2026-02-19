@@ -33,4 +33,4 @@ Can not verify the admin
 Ugly ui  
 
 ### Only zip code 11111,22222,33333,44444,55555 has poll data  
-### /admin to get into the admin dashboard
+### /admin to get into the admin dashboard (no password)
