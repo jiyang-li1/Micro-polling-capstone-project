@@ -31,7 +31,7 @@ main.py
 No way to fetch the data unless manualy enter http://10.44.61.169:5000/poll/1/results  
 Can not verify the admin  
 Ugly ui  
-Once a choice is deleted the vote record would have no choice but still there and the percentage is not right
+Once a choice is deleted the vote record would have no choice but still there and the percentage is not right(check test poll 5)
 
 ### Only zip code 11111,22222,33333,44444,55555 has poll data  
 ### /admin to get into the admin dashboard (no password)
