@@ -22,8 +22,8 @@ main.py
 
 1  Make a admin page to the result  
 2  New UI Style  
-3  Create a exe easy to update or in the admin panel (finished)
-4  More detailed Admin panel  (finished)
+3  ~~Create a exe easy to update or in the admin panel~~ (finished)
+4  ~~More detailed Admin panel~~(finished)
 5  admin login function and login page
 
 
