@@ -22,13 +22,15 @@ main.py
 
 1  Make a admin page to the result  
 2  New UI Style  
-3  Create a exe easy to update or in the admin panel
-4  More detailed Admin panel  
+3  Create a exe easy to update or in the admin panel (finished)
+4  More detailed Admin panel  (finished)
+5  admin login function and login page
+
 
 ### 3 Possible bugs  
 No way to fetch the data unless manualy enter http://10.44.61.169:5000/poll/1/results  
 Can not verify the admin  
 Ugly ui  
-Create a delete vote data function for testing
 
-### Only zip code 11111,22222,33333,44444,55555 has poll data
+### Only zip code 11111,22222,33333,44444,55555 has poll data  
+### /admin to get into the admin dashboard
