@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Poll Detail - {{ poll.title }}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .meta {
+            color: #666;
+            margin-bottom: 30px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 5px;
+        }
+        
+        .section {
+            margin-bottom: 40px;
+        }
+        
+        h2 {
+            color: #333;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e9ecef;
+            padding-bottom: 10px;
+        }
+        
+        .result-item {
+            margin-bottom: 20px;
+        }
+        
+        .result-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        
+        .result-bar-container {
+            height: 30px;
+            background: #e9ecef;
+            border-radius: 15px;
+            overflow: hidden;
+        }
+        
+        .result-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #28a745, #20c997);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        th {
+            background: #f8f9fa;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            transition: all 0.3s;
+            margin-right: 10px;
+        }
+        
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .total-votes-box {
+            text-align: center;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+        
+        .total-votes-box h2 {
+            color: white;
+            border: none;
+            font-size: 36px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>{{ poll.title }}</h1>
+        
+        <div class="meta">
+            <strong>Question:</strong> {{ poll.question }}<br>
+            <strong>Zip Code:</strong> {{ poll.zip_code }}<br>
+            <strong>Created At:</strong> {{ poll.created_at.strftime('%Y-%m-%d %H:%M') }}<br>
+            <strong>Status:</strong> 
+            {% if poll.is_active == 1 %}
+            <span style="color: #28a745;">Active</span>
+            {% else %}
+            <span style="color: #6c757d;">Inactive</span>
+            {% endif %}<br>
+            <strong>Poll ID：</strong> {{ poll.id }}
+        </div>
+        
+
+        <div class="section">
+            <h2>Poll Results</h2>
+            
+            <div class="total-votes-box">
+                <h2>Total Votes: {{ total_votes }}</h2>
+            </div>
+            
+            {% if total_votes > 0 %}
+                {% for option, data in results.items() %}
+                <div class="result-item">
+                    <div class="result-label">
+                        <span>{{ option }}</span>
+                        <span>{{ data.count }} votes ({{ data.percentage }}%)</span>
+                    </div>
+                    <div class="result-bar-container">
+                        <div class="result-bar" style="width: {{ data.percentage }}%">
+                            {{ data.percentage }}%
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <p style="color: #999; text-align: center; padding: 20px;">No voting records available</p>
+            {% endif %}
+        </div>
+        
+
+        <div class="section">
+            <h2>Recent Voting Records</h2>
+            
+            {% if votes %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Vote ID</th>
+                        <th>Choice</th>
+                        <th>Voted At</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for vote in votes[:10] %}
+                    <tr>
+                        <td>{{ vote.id }}</td>
+                        <td><strong>{{ poll.get_options()[vote.choice] }}</strong></td>
+                        <td>{{ vote.voted_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p style="color: #999; text-align: center; padding: 20px;">No voting records available</p>
+            {% endif %}
+        </div>
+        
+
+        <div style="margin-top: 30px;">
+            <a href="{{ url_for('admin_edit_poll', poll_id=poll.id) }}" class="btn btn-primary">Edit Poll</a>
+            <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary">Back to Dashboard</a>
+        </div>
+    </div>
+</body>
+</html>
