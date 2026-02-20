@@ -1,5 +1,14 @@
 <!DOCTYPE html>
 <head>
+    <div class="header">
+    <div>
+        <h1>Admin Dashboard</h1>
+    </div>
+    <div>
+        <a href="{{ url_for('admin_create_poll') }}" class="btn btn-success"> Create New Poll</a>
+        <a href="{{ url_for('admin_logout') }}" class="btn btn-secondary"> Logout</a>
+    </div>
+</div>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - Polling System</title>
     <style>
@@ -201,7 +210,7 @@
             </div>
         </div>
         
-        <!-- 投票列表 -->
+        <!-- Polls List -->
         <h2 style="margin-bottom: 15px;">All Polls</h2>
         
         <table>
