@@ -59,6 +59,17 @@ class Vote(Base):
         return f"<Vote(poll_id={self.poll_id}, choice={self.choice})>"
 
 
+class Admin(Base):
+    """Admin user for managing polls"""
+    __tablename__ = 'admins'
+    
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    username = Column(String(50), unique=True, nullable=False)
+    password_hash = Column(String(255), nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    def __repr__(self):
+        return f"<Admin(id={self.id}, username='{self.username}')>"
 
 
 def init_db(db_path='sqlite:///polling.db'):
