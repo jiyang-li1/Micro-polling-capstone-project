@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import Flask, render_template, request, redirect, url_for, flash, session
 from model import (
     init_db, get_session, 
     get_latest_poll_by_zipcode, 
@@ -7,9 +7,13 @@ from model import (
     get_poll_results, 
     get_all_polls,
     Poll,  
-    Vote   
+    Vote,
+    Admin   
 )
 import os
+import hashlib
+from functools import wraps
+
 app = Flask(__name__)
 app.secret_key = 'test'
 
@@ -17,6 +21,21 @@ engine = init_db('sqlite:///polling.db')
 
 def get_db():
     return get_session(engine)
+
+
+def hash_password(password):
+    return hashlib.sha256(password.encode()).hexdigest()
+
+
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'admin_id' not in session:
+            flash('Please log in first', 'error')
+            return redirect(url_for('admin_login'))
+        return f(*args, **kwargs)
+    return decorated_function
+
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
@@ -82,7 +101,7 @@ def submit_vote(poll_id):
         db.close()
     
     return redirect(url_for('index'))
-
+''' Originial code for results page, can be uncommented if needed
 @app.route('/poll/<int:poll_id>/results')
 def poll_results(poll_id):
     
@@ -100,8 +119,46 @@ def poll_results(poll_id):
         results=data['results'],
         total_votes=data['total_votes']
     )
+'''  
+@app.route('/admin/login', methods=['GET', 'POST'])
+def admin_login():
+    if 'admin_id' in session:
+        return redirect(url_for('admin_dashboard'))
     
+    if request.method == 'POST':
+        username = request.form.get('username', '').strip()
+        password = request.form.get('password', '').strip()
+        
+        if not username or not password:
+            flash('Please enter both username and password', 'error')
+            return redirect(url_for('admin_login'))
+        
+        db = get_db()
+        admin = db.query(Admin).filter_by(username=username).first()
+        db.close()
+        
+        if admin and admin.password_hash == hash_password(password):
+            session['admin_id'] = admin.id
+            session['admin_username'] = admin.username
+            return redirect(url_for('admin_dashboard'))
+        else:
+            flash('Username or password is incorrect', 'error')
+            return redirect(url_for('admin_login'))
+    
+    return render_template('admin/login.html')
+
+
+@app.route('/admin/logout')
+def admin_logout():
+    session.pop('admin_id', None)
+    session.pop('admin_username', None)
+    return redirect(url_for('admin_login'))
+
+
+
+  
 @app.route('/admin')
+@login_required
 def admin_dashboard():
     
     db = get_db()
@@ -122,6 +179,7 @@ def admin_dashboard():
     )
     
 @app.route('/admin/poll/<int:poll_id>')
+@login_required
 def admin_poll_detail(poll_id):    
     db = get_db()
     poll = get_poll_by_id(db, poll_id)
@@ -143,6 +201,7 @@ def admin_poll_detail(poll_id):
         votes=votes
     )
 @app.route('/admin/poll/create', methods=['GET', 'POST'])
+@login_required
 def admin_create_poll():
     
     if request.method == 'POST':
@@ -187,6 +246,7 @@ def admin_create_poll():
     return render_template('admin/create_poll.html')
 
 @app.route('/admin/poll/<int:poll_id>/edit', methods=['GET', 'POST'])
+@login_required
 def admin_edit_poll(poll_id):
     
     db = get_db()
@@ -227,6 +287,7 @@ def admin_edit_poll(poll_id):
     return render_template('admin/edit_poll.html', poll=poll)
 
 @app.route('/admin/poll/<int:poll_id>/delete', methods=['POST'])
+@login_required
 def admin_delete_poll(poll_id):
 
     
@@ -249,6 +310,7 @@ def admin_delete_poll(poll_id):
 
 
 @app.route('/admin/poll/<int:poll_id>/toggle', methods=['POST'])
+@login_required
 def admin_toggle_poll(poll_id):
 
     
@@ -256,7 +318,7 @@ def admin_toggle_poll(poll_id):
     poll = get_poll_by_id(db, poll_id)
     
     if not poll:
-        flash('投票不存在', 'error')
+        flash('Poll does not exist', 'error')
     else:
         try:
             poll.is_active = 0 if poll.is_active == 1 else 1
