@@ -22,19 +22,20 @@ main.py
 
 1  ~~Make a admin page to the result~~(finished)  
 2  New UI Style  
-3  ~~Create a exe easy to update or in the admin panel~~ (finished)
-4  ~~More detailed Admin panel~~(finished)
-5  admin login function and login page  
-6  IP collection for geographic info (?)
-
+3  ~~Create a exe easy to update or in the admin panel~~ (finished)  
+4  ~~More detailed Admin panel~~(finished)  
+5  ~~admin login function and login page~~(finished)  
+6  IP collection for geographic info and for prevent revoting (?)  
+7  Add use the location to get the address and add a api to parse the location
 
 ### 3 Possible bugs  
 ~~No way to fetch the data unless manualy enter http://10.44.61.169:5000/poll/1/results~~  (Go to admin to get results)  
-Can not verify the admin  
+~~Can not verify the admin~~   
 Ugly ui  
 Once a choice is deleted the vote record would have no choice but still there and the percentage is not right (check test poll 5)  
 Wrong scaling on mobiles  
-Original results page not deleted  
+~~Original results page not deleted~~(commented)    
 
 ### Only zip code 11111,22222,33333,44444,55555 has poll data  
-### /admin to get into the admin dashboard (no password)
+~~### /admin to get into the admin dashboard (no password)~~
+### Admin username: admin Password: 12345678 (if not admin try create_admin.py)
