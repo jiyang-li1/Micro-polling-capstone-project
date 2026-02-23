@@ -26,7 +26,10 @@ main.py
 4  ~~More detailed Admin panel~~(finished)  
 5  ~~admin login function and login page~~(finished)  
 6  IP collection for geographic info and for prevent revoting (?)  
-7  Add use the location to get the address and add a api to parse the location
+7  Add use the location to get the address and add a api to parse the location  
+8  Make sure which district users are in(maybe interactive map)  
+9  More explanation on the poll page(explanation on the question)  
+10 New scaling on mobile phones  
 
 ### 3 Possible bugs  
 ~~No way to fetch the data unless manualy enter http://10.44.61.169:5000/poll/1/results~~  (Go to admin to get results)  
