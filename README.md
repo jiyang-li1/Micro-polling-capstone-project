@@ -41,4 +41,5 @@ Wrong scaling on mobiles
 
 ### Only zip code 11111,22222,33333,44444,55555 has poll data  
 ~~### /admin to get into the admin dashboard (no password)~~
-### Admin username: admin Password: 12345678 (if not admin try create_admin.py)
+### Admin username: admin Password: 12345678 (if not admin try create_admin.py)  
+## This branch is testing the function of select a district after you enter the zip code  
