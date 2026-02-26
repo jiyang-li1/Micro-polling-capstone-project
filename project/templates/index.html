@@ -157,23 +157,20 @@
             {% endif %}
         {% endwith %}
         
-        <!-- Input -->
         <form method="POST" action="{{ url_for('index') }}">
             <div class="input-group">
-                <label for="zip_code">Zip Code：</label>
+                <label for="query">Zip Code or City Name：</label>
                 <input 
                     type="text" 
-                    id="zip_code" 
-                    name="zip_code" 
-                    placeholder="12345"
-                    pattern="[0-9]{5}"
-                    maxlength="5"
+                    id="query" 
+                    name="query" 
+                    placeholder="94706 or Albany"
                     required
                     autofocus
                 >
             </div>
-            <button type="submit">Find my Poll</button>
+            <button type="submit">Find Poll</button>
         </form>
-        
+
 </body>
 </html>
