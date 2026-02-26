@@ -145,7 +145,7 @@
             <p class="question">{{ poll.question }}</p>
             <div class="poll-meta">
                 <span class="poll-zip">Zip Code: {{ poll.zip_code }}</span>
-                <span>📅 {{ poll.created_at.strftime('%Y-%m-%d') }}</span>
+                <span> {{ poll.created_at.strftime('%Y-%m-%d') }}</span>
                 <a href="{{ url_for('poll_page', poll_id=poll.id) }}" class="btn" onclick="event.stopPropagation()">
                     Vote →
                 </a>
