@@ -43,3 +43,7 @@ Wrong scaling on mobiles
 ~~### /admin to get into the admin dashboard (no password)~~
 ### Admin username: admin Password: 12345678 (if not admin try create_admin.py)  
 ## This branch is testing the function of select a district after you enter the zip code  
+# Able to use berkeley to find poll 
+# Not fully testes    
+# Add autofilling  
+# Currently database relation is multiple zipcode to single city, change to multi 2 multi in next test
