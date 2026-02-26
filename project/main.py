@@ -8,7 +8,10 @@ from model import (
     get_all_polls,
     Poll,  
     Vote,
-    Admin   
+    Admin,
+    ZipCode,  
+    search_by_city_or_zip, 
+    get_polls_by_zipcodes   
 )
 import os
 import hashlib
@@ -36,7 +39,7 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
-
+''' Original code for index page, can be uncommented if needed
 @app.route('/', methods=['GET', 'POST'])
 def index():
     
@@ -67,6 +70,59 @@ def index():
             return redirect(url_for('index'))
     
     return render_template('index.html')
+'''
+@app.route('/', methods=['GET', 'POST'])
+def index():
+
+    
+    if request.method == 'POST':
+        query = request.form.get('query', '').strip()
+        
+
+        if not query:
+            flash('Please enter a zip code or city name', 'error')
+            return redirect(url_for('index'))
+        
+        db = get_db()
+        
+        if query.isdigit() and len(query) == 5:
+            poll = get_latest_poll_by_zipcode(db, query)
+            db.close()
+            
+            if poll:
+                return redirect(url_for('poll_page', poll_id=poll.id))
+            else:
+                flash(f'No poll found for zip code {query}', 'error')
+                return redirect(url_for('index'))
+        
+        else:
+            zipcodes = search_by_city_or_zip(db, query)
+            
+            if not zipcodes:
+                flash(f'City "{query}" not found', 'error')
+                db.close()
+                return redirect(url_for('index'))
+
+            zip_list = [zc.zip_code for zc in zipcodes]
+            polls = get_polls_by_zipcodes(db, zip_list)
+            
+            db.close()
+            
+            if not polls:
+                flash(f'City "{query}" poll not found', 'error')
+                return redirect(url_for('index'))
+            
+
+            if len(polls) == 1:
+                return redirect(url_for('poll_page', poll_id=polls[0].id))
+
+            return render_template('select_poll.html', 
+                                 query=query, 
+                                 polls=polls,
+                                 zipcodes=zipcodes)
+    
+    return render_template('index.html')
+
 
 @app.route('/poll/<int:poll_id>')  
 def poll_page(poll_id):     
