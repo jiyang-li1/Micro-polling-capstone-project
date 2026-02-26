@@ -178,3 +178,36 @@ if __name__ == '__main__':
     
 
     db.close()
+
+
+class ZipCode(Base):
+    __tablename__ = 'zipcodes'
+    
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    zip_code = Column(String(10), nullable=False, index=True)
+    city = Column(String(100), nullable=False, index=True)
+    state = Column(String(2), nullable=False, index=True)
+    
+    def __repr__(self):
+        return f"<ZipCode(zip={self.zip_code}, city='{self.city}', state='{self.state}')>"
+
+
+def search_by_city_or_zip(db, query):
+    query = query.strip()
+    if query.isdigit() and len(query) == 5:
+        results = db.query(ZipCode).filter_by(zip_code=query).all()
+    else:
+        results = db.query(ZipCode).filter(
+            ZipCode.city.ilike(f'%{query}%')
+        ).all()
+    
+    return results
+
+
+def get_polls_by_zipcodes(db, zip_codes):
+    polls = db.query(Poll).filter(
+        Poll.zip_code.in_(zip_codes),
+        Poll.is_active == 1
+    ).order_by(desc(Poll.created_at)).all()
+    
+    return polls
