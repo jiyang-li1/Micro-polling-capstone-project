@@ -212,14 +212,22 @@ def admin_logout():
 
 
 
-  
 @app.route('/admin')
 @login_required
-def admin_dashboard():
-    
+def admin_dashboard():    
     db = get_db()
     polls = get_all_polls(db)
     
+
+    polls_with_votes = []
+    for poll in polls:
+        vote_count = db.query(Vote).filter_by(poll_id=poll.id).count()
+        polls_with_votes.append({
+            'poll': poll,
+            'vote_count': vote_count
+        })
+    
+  
     total_polls = len(polls)
     total_votes_count = db.query(Vote).count()
     active_polls = db.query(Poll).filter_by(is_active=1).count()
@@ -228,7 +236,7 @@ def admin_dashboard():
     
     return render_template(
         'admin/dashboard.html',
-        polls=polls,
+        polls_data=polls_with_votes,  
         total_polls=total_polls,
         total_votes_count=total_votes_count,
         active_polls=active_polls
