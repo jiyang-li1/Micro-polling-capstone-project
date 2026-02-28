@@ -26,7 +26,10 @@ main.py
 4  ~~More detailed Admin panel~~(finished)  
 5  ~~admin login function and login page~~(finished)  
 6  IP collection for geographic info and for prevent revoting (?)  
-7  Add use the location to get the address and add a api to parse the location
+7  Add use the location to get the address and add a api to parse the location  
+8  Make sure which district users are in(maybe interactive map)  
+9  More explanation on the poll page(explanation on the question)  
+10 New scaling on mobile phones  
 
 ### 3 Possible bugs  
 ~~No way to fetch the data unless manualy enter http://10.44.61.169:5000/poll/1/results~~  (Go to admin to get results)  
@@ -38,4 +41,9 @@ Wrong scaling on mobiles
 
 ### Only zip code 11111,22222,33333,44444,55555 has poll data  
 ~~### /admin to get into the admin dashboard (no password)~~
-### Admin username: admin Password: 12345678 (if not admin try create_admin.py)
+### Admin username: admin Password: 12345678 (if not admin try create_admin.py)  
+## This branch is testing the function of select a district after you enter the zip code  
+# Able to use berkeley to find poll 
+# Not fully testes    
+# Add autofilling  
+# Currently database relation is multiple zipcode to single city, change to multi 2 multi in next test

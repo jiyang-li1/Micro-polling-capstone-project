@@ -1,5 +1,8 @@
 <!DOCTYPE html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Micro Poll System</title>
     <style>
         * {
@@ -44,6 +47,12 @@
             margin-bottom: 20px;
             border-radius: 5px;
             font-size: 14px;
+            animation: slideIn 0.3s ease;
+        }
+        
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         
         .flash.error {
@@ -60,6 +69,7 @@
         
         .input-group {
             margin-bottom: 25px;
+            position: relative;
         }
         
         label {
@@ -82,6 +92,73 @@
         input[type="text"]:focus {
             outline: none;
             border-color: #667eea;
+        }
+        
+        .autocomplete-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 2px solid #667eea;
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            max-height: 300px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        
+        .autocomplete-dropdown.show {
+            display: block;
+        }
+        
+        .autocomplete-item {
+            padding: 12px 15px;
+            cursor: pointer;
+            border-bottom: 1px solid #f0f0f0;
+            transition: background 0.2s;
+        }
+        
+        .autocomplete-item:last-child {
+            border-bottom: none;
+        }
+        
+        .autocomplete-item:hover,
+        .autocomplete-item.selected {
+            background: #f0f4ff;
+        }
+        
+        .autocomplete-item-main {
+            color: #333;
+            font-weight: bold;
+            margin-bottom: 3px;
+        }
+        
+        .autocomplete-item-sub {
+            color: #666;
+            font-size: 13px;
+        }
+        
+        .autocomplete-icon {
+            display: inline-block;
+            width: 20px;
+            margin-right: 8px;
+        }
+        
+        .no-results {
+            padding: 15px;
+            text-align: center;
+            color: #999;
+            font-size: 14px;
+        }
+        
+        .loading {
+            padding: 15px;
+            text-align: center;
+            color: #667eea;
+            font-size: 14px;
         }
         
         button {
@@ -139,14 +216,19 @@
             color: #d63384;
             font-weight: bold;
         }
+        
+        .hint {
+            font-size: 13px;
+            color: #999;
+            margin-top: 8px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Micro Poll System</h1>
-        <p class="subtitle">Enter your zip code to find your poll</p>
+        <h1>Mirco poll system</h1>
+        <p class="subtitle">Enter Zipcode or City Name</p>
         
-        <!-- Flash  -->
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 {% for category, message in messages %}
@@ -157,23 +239,185 @@
             {% endif %}
         {% endwith %}
         
-        <!-- Input -->
-        <form method="POST" action="{{ url_for('index') }}">
+        <form method="POST" action="{{ url_for('index') }}" id="searchForm">
             <div class="input-group">
-                <label for="zip_code">Zip Code：</label>
+                <label for="query">Zip code or City Name</label>
                 <input 
                     type="text" 
-                    id="zip_code" 
-                    name="zip_code" 
-                    placeholder="12345"
-                    pattern="[0-9]{5}"
-                    maxlength="5"
+                    id="query" 
+                    name="query" 
+                    placeholder="Zipcode or City Name"
                     required
-                    autofocus
+                    autocomplete="off"
                 >
+                
+
+                <div class="autocomplete-dropdown" id="autocompleteDropdown"></div>
+                
+
             </div>
-            <button type="submit">Find my Poll</button>
+            <button type="submit">Find poll</button>
         </form>
         
+
+    </div>
+
+
+    <script>
+        const input = document.getElementById('query');
+        const dropdown = document.getElementById('autocompleteDropdown');
+        const form = document.getElementById('searchForm');
+        
+        let selectedIndex = -1;
+        let currentResults = [];
+        let debounceTimer = null;
+        
+
+        input.addEventListener('input', function() {
+            const query = this.value.trim();
+            
+
+            clearTimeout(debounceTimer);
+            
+            if (query.length < 2) {
+                hideDropdown();
+                return;
+            }
+            
+
+            debounceTimer = setTimeout(() => {
+                searchAutocomplete(query);
+            }, 300);
+        });
+        
+
+        async function searchAutocomplete(query) {
+            try {
+                showLoading();
+                
+                const response = await fetch(`/api/autocomplete?q=${encodeURIComponent(query)}`);
+                const data = await response.json();
+                
+                currentResults = data.results || [];
+                selectedIndex = -1;
+                
+                if (currentResults.length > 0) {
+                    renderResults(currentResults);
+                } else {
+                    showNoResults();
+                }
+                
+            } catch (error) {
+                console.error('Autocomplete error:', error);
+                hideDropdown();
+            }
+        }
+        
+
+        function renderResults(results) {
+            dropdown.innerHTML = '';
+            
+            results.forEach((item, index) => {
+                const div = document.createElement('div');
+                div.className = 'autocomplete-item';
+                div.dataset.index = index;
+                
+                
+                div.innerHTML = `
+                    <div class="autocomplete-item-main">
+                        ${item.display}
+                    </div>
+                `;
+                
+                div.addEventListener('click', () => selectItem(item));
+                dropdown.appendChild(div);
+            });
+            
+            showDropdown();
+        }
+        
+
+        function selectItem(item) {
+            input.value = item.value;
+            hideDropdown();
+            
+ 
+            setTimeout(() => {
+                form.submit();
+            }, 100);
+        }
+        
+
+        function showLoading() {
+            dropdown.innerHTML = '<div class="loading">Loading...</div>';
+            showDropdown();
+        }
+        
+
+        function showNoResults() {
+            dropdown.innerHTML = '<div class="no-results">No results found</div>';
+            showDropdown();
+        }
+        
+
+        function showDropdown() {
+            dropdown.classList.add('show');
+        }
+        
+
+        function hideDropdown() {
+            dropdown.classList.remove('show');
+            selectedIndex = -1;
+        }
+        
+
+        input.addEventListener('keydown', function(e) {
+            const items = dropdown.querySelectorAll('.autocomplete-item');
+            
+            if (!dropdown.classList.contains('show') || items.length === 0) {
+                return;
+            }
+            
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                selectedIndex = Math.min(selectedIndex + 1, items.length - 1);
+                updateSelection(items);
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                selectedIndex = Math.max(selectedIndex - 1, -1);
+                updateSelection(items);
+            } else if (e.key === 'Enter') {
+                if (selectedIndex >= 0) {
+                    e.preventDefault();
+                    selectItem(currentResults[selectedIndex]);
+                }
+            } else if (e.key === 'Escape') {
+                hideDropdown();
+            }
+        });
+        
+        function updateSelection(items) {
+            items.forEach((item, index) => {
+                if (index === selectedIndex) {
+                    item.classList.add('selected');
+                    item.scrollIntoView({ block: 'nearest' });
+                } else {
+                    item.classList.remove('selected');
+                }
+            });
+        }
+        
+        document.addEventListener('click', function(e) {
+            if (!input.contains(e.target) && !dropdown.contains(e.target)) {
+                hideDropdown();
+            }
+        });
+        
+        input.addEventListener('focus', function() {
+            if (this.value.trim().length >= 2 && currentResults.length > 0) {
+                renderResults(currentResults);
+            }
+        });
+    </script>
 </body>
 </html>

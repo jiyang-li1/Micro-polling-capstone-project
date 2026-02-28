@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Select poll - {{ query }}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 50px auto;
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+        }
+        
+        .info-box {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            border-left: 4px solid #2196f3;
+        }
+        
+        .poll-card {
+            border: 2px solid #e0e0e0;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        
+        .poll-card:hover {
+            border-color: #667eea;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+            transform: translateY(-2px);
+        }
+        
+        .poll-card h3 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .poll-card .question {
+            color: #666;
+            margin-bottom: 15px;
+            font-size: 15px;
+        }
+        
+        .poll-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 14px;
+            color: #999;
+        }
+        
+        .poll-zip {
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+        
+        .btn:hover {
+            background: #5568d3;
+        }
+        
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            color: #667eea;
+            text-decoration: none;
+        }
+        
+        .back-link:hover {
+            text-decoration: underline;
+        }
+        
+        .zipcode-list {
+            font-size: 14px;
+            color: #666;
+            margin-top: 10px;
+        }
+        
+        .zipcode-tag {
+            display: inline-block;
+            background: #e3f2fd;
+            padding: 3px 8px;
+            border-radius: 3px;
+            margin-right: 5px;
+            margin-bottom: 5px;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Select Poll for "{{ query }}"</h1>
+        <p class="subtitle">Found {{ polls|length }} polls related to "{{ query }}"</p>
+        
+        <div class="info-box">
+            <strong>Matching Zip Codes:</strong>
+            <div class="zipcode-list">
+                {% for zc in zipcodes %}
+                <span class="zipcode-tag">{{ zc.city }}, {{ zc.state }} ({{ zc.zip_code }})</span>
+                {% endfor %}
+            </div>
+        </div>
+        
+        {% for poll in polls %}
+        <div class="poll-card" onclick="window.location.href='{{ url_for('poll_page', poll_id=poll.id) }}'">
+            <h3>{{ poll.title }}</h3>
+            <p class="question">{{ poll.question }}</p>
+            <div class="poll-meta">
+                <span class="poll-zip">Zip Code: {{ poll.zip_code }}</span>
+                <span> {{ poll.created_at.strftime('%Y-%m-%d') }}</span>
+                <a href="{{ url_for('poll_page', poll_id=poll.id) }}" class="btn" onclick="event.stopPropagation()">
+                    Vote →
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+        
+        <a href="{{ url_for('index') }}" class="back-link">← Back to Search</a>
+    </div>
+</body>
+</html>
