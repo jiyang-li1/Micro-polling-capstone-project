@@ -1,3 +1,5 @@
 capstone/
 **/capstone/
 *.db
+project/__pycache__/model.cpython-313.pyc
+*.pyc
