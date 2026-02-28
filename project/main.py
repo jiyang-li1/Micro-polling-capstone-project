@@ -387,5 +387,61 @@ def admin_toggle_poll(poll_id):
     
     db.close()
     return redirect(url_for('admin_dashboard'))
+
+@app.route('/api/autocomplete')
+def autocomplete():
+    
+    query = request.args.get('q', '').strip()
+    
+    if not query or len(query) < 2:  
+        return {'results': []}
+    
+    db = get_db()
+    
+    results = []
+
+    if query.isdigit():
+        zipcodes = db.query(ZipCode).filter(
+            ZipCode.zip_code.like(f'{query}%')
+        ).limit(10).all()
+        
+        for zc in zipcodes:
+            results.append({
+                'type': 'zipcode',
+                'display': f"{zc.zip_code} - {zc.city}, {zc.state}",
+                'value': zc.zip_code,
+                'zip_code': zc.zip_code,
+                'city': zc.city,
+                'state': zc.state
+            })
+    
+    else:
+        cities = db.query(
+            ZipCode.city, 
+            ZipCode.state
+        ).filter(
+            ZipCode.city.ilike(f'{query}%')
+        ).distinct().limit(10).all()
+        
+        for city, state in cities:
+            zip_count = db.query(ZipCode).filter_by(
+                city=city, 
+                state=state
+            ).count()
+            
+            results.append({
+                'type': 'city',
+                'display': f"{city}, {state}",
+                'value': city,
+                'city': city,
+                'state': state
+            })
+    
+    db.close()
+    
+    return {'results': results}
+
+
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
+    
