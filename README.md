@@ -37,13 +37,12 @@ main.py
 Ugly ui  
 Once a choice is deleted the vote record would have no choice but still there and the percentage is not right (check test poll 5)  
 Wrong scaling on mobiles  
-~~Original results page not deleted~~(commented)    
+~~Original results page not deleted~~(commented)  
+Admin exists  
 
 ### Only zip code 11111,22222,33333,44444,55555 has poll data  
 ~~### /admin to get into the admin dashboard (no password)~~
 ### Admin username: admin Password: 12345678 (if not admin try create_admin.py)  
-## This branch is testing the function of select a district after you enter the zip code  
-# Able to use berkeley to find poll 
-# Not fully testes    
-# Add autofilling  
-# Currently database relation is multiple zipcode to single city, change to multi 2 multi in next test
+
+
+
