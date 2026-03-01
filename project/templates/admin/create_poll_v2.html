@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create New Poll - Admin</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .required {
+            color: #dc3545;
+        }
+        
+        input[type="text"],
+        input[type="number"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        textarea:focus,
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        
+        .help-text {
+            font-size: 13px;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        /* 投票类型选择器 */
+        .poll-type-selector {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 10px;
+        }
+        
+        .poll-type-card {
+            border: 2px solid #ddd;
+            padding: 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+        
+        .poll-type-card:hover {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+        
+        .poll-type-card.selected {
+            border-color: #667eea;
+            background: #e3f2fd;
+        }
+        
+        .poll-type-icon {
+            font-size: 36px;
+            margin-bottom: 10px;
+        }
+        
+        .poll-type-name {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .poll-type-desc {
+            font-size: 13px;
+            color: #666;
+        }
+        
+        /* 选项配置 */
+        .options-section,
+        .rating-section,
+        .multiple-choice-section {
+            display: none;
+        }
+        
+        .option-item {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+        
+        .option-item input {
+            flex: 1;
+        }
+        
+        .btn-remove {
+            padding: 8px 12px;
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        
+        .btn-add {
+            padding: 10px 20px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        
+        /* 地理选择 */
+        .geo-selector {
+            margin-top: 15px;
+        }
+        
+        .geo-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .geo-tab {
+            padding: 10px 20px;
+            background: #e9ecef;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        .geo-tab.active {
+            background: #667eea;
+            color: white;
+        }
+        
+        .geo-content {
+            display: none;
+        }
+        
+        .geo-content.active {
+            display: block;
+        }
+        
+        .zipcode-input-area {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .zipcode-input-area input {
+            flex: 1;
+        }
+        
+        .selected-items {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            min-height: 40px;
+            padding: 10px;
+            border: 2px dashed #ddd;
+            border-radius: 5px;
+        }
+        
+        .selected-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            background: #e3f2fd;
+            border-radius: 15px;
+            font-size: 14px;
+        }
+        
+        .remove-item {
+            cursor: pointer;
+            color: #dc3545;
+            font-weight: bold;
+        }
+        
+        .city-search-results {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+        
+        .city-result-item {
+            padding: 10px;
+            cursor: pointer;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .city-result-item:hover {
+            background: #f0f4ff;
+        }
+        
+        .city-result-name {
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .city-result-info {
+            font-size: 13px;
+            color: #666;
+        }
+        
+        .flash {
+            padding: 12px 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        
+        .flash.success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .flash.error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        
+        .buttons {
+            margin-top: 30px;
+            display: flex;
+            gap: 15px;
+        }
+        
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #5568d3;
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>+ Create New Poll</h1>
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                <div class="flash {{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        
+        <form method="POST" id="pollForm">
+            <!-- Basic Information -->
+            <div class="form-group">
+                <label for="title">Poll Title <span class="required">*</span></label>
+                <input type="text" id="title" name="title" required 
+                       placeholder="e.g., Berkeley Housing Development Initiative">
+            </div>
+            
+            <div class="form-group">
+                <label for="question">Question <span class="required">*</span></label>
+                <textarea id="question" name="question" required 
+                          placeholder="e.g., Should Berkeley allow more housing development in downtown?"></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="description">Description (Optional)</label>
+                <textarea id="description" name="description" 
+                          placeholder="Additional context or details about this poll..."></textarea>
+            </div>
+            
+            <!-- Poll Type Selection -->
+            <div class="form-group">
+                <label>Poll Type <span class="required">*</span></label>
+                <div class="poll-type-selector">
+                    <div class="poll-type-card selected" data-type="single_choice">
+                        <div class="poll-type-name">Single Choice</div>
+                        <div class="poll-type-desc">Select one option</div>
+                    </div>
+                    <div class="poll-type-card" data-type="multiple_choice">
+                        <div class="poll-type-name">Multiple Choice</div>
+                        <div class="poll-type-desc">Select multiple options</div>
+                    </div>
+                    <div class="poll-type-card" data-type="rating_scale">
+                        <div class="poll-type-name">Rating Scale</div>
+                        <div class="poll-type-desc">Rate from 1 to 5</div>
+                    </div>
+                    <div class="poll-type-card" data-type="ranked_choice">
+                        <div class="poll-type-name">Ranked Choice</div>
+                        <div class="poll-type-desc">Rank by preference</div>
+                    </div>
+                </div>
+                <input type="hidden" id="poll_type" name="poll_type" value="single_choice">
+            </div>
+            
+            <!-- Single Choice / Multiple Choice / Ranked Choice Options -->
+            <div class="options-section" id="optionsSection">
+                <div class="form-group">
+                    <label>Options <span class="required">*</span></label>
+                    <div id="optionsContainer">
+                        <div class="option-item">
+                            <input type="text" name="option_1" placeholder="Option 1" required>
+                        </div>
+                        <div class="option-item">
+                            <input type="text" name="option_2" placeholder="Option 2" required>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-add" onclick="addOption()">+ Add Option</button>
+                </div>
+            </div>
+            
+            <!-- Multiple Choice Settings -->
+            <div class="multiple-choice-section" id="multipleChoiceSection">
+                <div class="form-group">
+                    <label for="min_choices">Minimum Choices</label>
+                    <input type="number" id="min_choices" name="min_choices" value="1" min="1">
+                    <p class="help-text">Minimum number of options users must select</p>
+                </div>
+                
+                <div class="form-group">
+                    <label for="max_choices">Maximum Choices (Optional)</label>
+                    <input type="number" id="max_choices" name="max_choices" placeholder="Leave empty for no limit">
+                    <p class="help-text">Maximum number of options users can select</p>
+                </div>
+            </div>
+            
+            <!-- Rating Scale Settings -->
+            <div class="rating-section" id="ratingSection">
+                <div class="form-group">
+                    <label for="rating_min">Minimum Rating</label>
+                    <input type="number" id="rating_min" name="rating_min" value="1" min="1">
+                </div>
+                
+                <div class="form-group">
+                    <label for="rating_max">Maximum Rating</label>
+                    <input type="number" id="rating_max" name="rating_max" value="5" min="2" max="10">
+                </div>
+                
+                <div class="form-group">
+                    <label>Rating Labels (Optional)</label>
+                    <input type="text" name="rating_label_min" placeholder="e.g., Very Bad">
+                    <p class="help-text">Label for minimum rating</p>
+                </div>
+                
+                <div class="form-group">
+                    <input type="text" name="rating_label_max" placeholder="e.g., Very Good">
+                    <p class="help-text">Label for maximum rating</p>
+                </div>
+            </div>
+            
+            <!-- Geographic Selection -->
+            <div class="form-group">
+                <label>Target Area <span class="required">*</span></label>
+                <p class="help-text">Select zip codes or cities where this poll will be available</p>
+                
+                <div class="geo-selector">
+                    <div class="geo-tabs">
+                        <button type="button" class="geo-tab active" data-tab="zipcodes" onclick="switchGeoTab('zipcodes')">
+                            By Zip Codes
+                        </button>
+                        <button type="button" class="geo-tab" data-tab="cities" onclick="switchGeoTab('cities')">
+                            By Cities
+                        </button>
+                    </div>
+                    
+                    <!-- Zip Codes Tab -->
+                    <div class="geo-content active" id="zipcodesTab">
+                        <div class="zipcode-input-area">
+                            <input type="text" id="zipcodeInput" placeholder="Enter zip code (e.g., 94706)" 
+                                   pattern="[0-9]{5}" maxlength="5">
+                            <button type="button" class="btn-add" onclick="addZipcode()">Add</button>
+                        </div>
+                        
+                        <div class="selected-items" id="selectedZipcodes">
+                            <span style="color: #999; font-size: 14px;">No zip codes selected</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Cities Tab -->
+                    <div class="geo-content" id="citiesTab">
+                        <div class="zipcode-input-area">
+                            <input type="text" id="cityInput" placeholder="Search city name (e.g., Berkeley)" 
+                                   autocomplete="off">
+                            <button type="button" class="btn-add" onclick="searchCities()">Search</button>
+                        </div>
+                        
+                        <div class="city-search-results" id="citySearchResults" style="display: none;"></div>
+                        
+                        <div class="selected-items" id="selectedCities">
+                            <span style="color: #999; font-size: 14px;">No cities selected</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Hidden fields to store selected data -->
+                <input type="hidden" id="selectedZipcodesData" name="zipcodes" value="[]">
+                <input type="hidden" id="selectedCitiesData" name="cities" value="[]">
+            </div>
+            
+            <!-- Submit Buttons -->
+            <div class="buttons">
+                <button type="submit" class="btn btn-primary"> Create Poll</button>
+                <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        let selectedZipcodes = [];
+        let selectedCities = [];
+        let optionCount = 2;
+        
+        // Poll type selection
+        document.querySelectorAll('.poll-type-card').forEach(card => {
+            card.addEventListener('click', function() {
+                document.querySelectorAll('.poll-type-card').forEach(c => c.classList.remove('selected'));
+                this.classList.add('selected');
+                
+                const type = this.dataset.type;
+                document.getElementById('poll_type').value = type;
+                
+                // Show/hide relevant sections
+                document.getElementById('optionsSection').style.display = 
+                    ['single_choice', 'multiple_choice', 'ranked_choice'].includes(type) ? 'block' : 'none';
+                
+                document.getElementById('multipleChoiceSection').style.display = 
+                    type === 'multiple_choice' ? 'block' : 'none';
+                
+                document.getElementById('ratingSection').style.display = 
+                    type === 'rating_scale' ? 'block' : 'none';
+            });
+        });
+        
+        // Initialize: show options section for default single_choice
+        document.getElementById('optionsSection').style.display = 'block';
+        
+        // Add option
+        function addOption() {
+            optionCount++;
+            const container = document.getElementById('optionsContainer');
+            const div = document.createElement('div');
+            div.className = 'option-item';
+            div.innerHTML = `
+                <input type="text" name="option_${optionCount}" placeholder="Option ${optionCount}">
+                <button type="button" class="btn-remove" onclick="removeOption(this)">✕</button>
+            `;
+            container.appendChild(div);
+        }
+        
+        function removeOption(btn) {
+            btn.parentElement.remove();
+        }
+        
+        // Geographic selection
+        function switchGeoTab(tab) {
+            document.querySelectorAll('.geo-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.geo-content').forEach(c => c.classList.remove('active'));
+            
+            document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
+            document.getElementById(tab + 'Tab').classList.add('active');
+        }
+        
+        // Add zipcode
+        function addZipcode() {
+            const input = document.getElementById('zipcodeInput');
+            const zipcode = input.value.trim();
+            
+            if (!zipcode || zipcode.length !== 5 || !/^\d{5}$/.test(zipcode)) {
+                alert('Please enter a valid 5-digit zip code');
+                return;
+            }
+            
+            if (selectedZipcodes.includes(zipcode)) {
+                alert('This zip code is already added');
+                return;
+            }
+            
+            selectedZipcodes.push(zipcode);
+            updateZipcodeDisplay();
+            input.value = '';
+        }
+        
+        function removeZipcode(zipcode) {
+            selectedZipcodes = selectedZipcodes.filter(z => z !== zipcode);
+            updateZipcodeDisplay();
+        }
+        
+        function updateZipcodeDisplay() {
+            const container = document.getElementById('selectedZipcodes');
+            
+            if (selectedZipcodes.length === 0) {
+                container.innerHTML = '<span style="color: #999; font-size: 14px;">No zip codes selected</span>';
+            } else {
+                container.innerHTML = selectedZipcodes.map(z => `
+                    <span class="selected-item">
+                        ${z}
+                        <span class="remove-item" onclick="removeZipcode('${z}')">✕</span>
+                    </span>
+                `).join('');
+            }
+            
+            document.getElementById('selectedZipcodesData').value = JSON.stringify(selectedZipcodes);
+        }
+        
+        // Search cities
+        async function searchCities() {
+            const input = document.getElementById('cityInput');
+            const query = input.value.trim();
+            
+            if (query.length < 2) {
+                alert('Please enter at least 2 characters');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/search-cities?q=${encodeURIComponent(query)}`);
+                const data = await response.json();
+                
+                displayCityResults(data.cities);
+            } catch (error) {
+                console.error('Error searching cities:', error);
+                alert('Error searching cities');
+            }
+        }
+        
+        function displayCityResults(cities) {
+            const container = document.getElementById('citySearchResults');
+            
+            if (cities.length === 0) {
+                container.innerHTML = '<div style="padding: 15px; text-align: center; color: #999;">No cities found</div>';
+                container.style.display = 'block';
+                return;
+            }
+            
+            container.innerHTML = cities.map(city => `
+                <div class="city-result-item" onclick='selectCity(${JSON.stringify(city)})'>
+                    <div class="city-result-name">${city.city}, ${city.state}</div>
+                    <div class="city-result-info">${city.zipcode_count} zip code(s)</div>
+                </div>
+            `).join('');
+            
+            container.style.display = 'block';
+        }
+        
+        function selectCity(city) {
+            const key = `${city.city}, ${city.state}`;
+            
+            if (selectedCities.find(c => `${c.city}, ${c.state}` === key)) {
+                alert('This city is already added');
+                return;
+            }
+            
+            selectedCities.push(city);
+            updateCityDisplay();
+            document.getElementById('citySearchResults').style.display = 'none';
+            document.getElementById('cityInput').value = '';
+        }
+        
+        function removeCity(index) {
+            selectedCities.splice(index, 1);
+            updateCityDisplay();
+        }
+        
+        function updateCityDisplay() {
+            const container = document.getElementById('selectedCities');
+            
+            if (selectedCities.length === 0) {
+                container.innerHTML = '<span style="color: #999; font-size: 14px;">No cities selected</span>';
+            } else {
+                container.innerHTML = selectedCities.map((city, index) => `
+                    <span class="selected-item">
+                        ${city.city}, ${city.state} (${city.zipcode_count} zips)
+                        <span class="remove-item" onclick="removeCity(${index})">✕</span>
+                    </span>
+                `).join('');
+            }
+            
+            document.getElementById('selectedCitiesData').value = JSON.stringify(selectedCities);
+        }
+        
+        // Form validation
+        document.getElementById('pollForm').addEventListener('submit', function(e) {
+            if (selectedZipcodes.length === 0 && selectedCities.length === 0) {
+                e.preventDefault();
+                alert('Please select at least one zip code or city');
+            }
+        });
+        
+        // Allow Enter key to add zipcode
+        document.getElementById('zipcodeInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                addZipcode();
+            }
+        });
+        
+        // Allow Enter key to search cities
+        document.getElementById('cityInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                searchCities();
+            }
+        });
+    </script>
+</body>
+</html>
