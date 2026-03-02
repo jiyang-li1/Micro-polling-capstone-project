@@ -2,3 +2,5 @@ capstone/
 **/capstone/
 *.db
 *.pyc
+project/sqlite3.def
+project/sqlite3.dll
