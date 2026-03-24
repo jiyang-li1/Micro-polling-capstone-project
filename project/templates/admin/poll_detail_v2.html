@@ -113,25 +113,80 @@
         
         <h1>{{ poll.title }}</h1>
         
-        <div class="meta">
-            <strong>Question:</strong> {{ poll.question }}<br>
+ <div class="meta">
+            <div class="meta-row">
+                <strong>Question:</strong> {{ poll.question }}
+            </div>
+            
             {% if poll.description %}
-            <strong>Description:</strong> {{ poll.description }}<br>
+            <div class="meta-row">
+                <strong>Description:</strong> {{ poll.description }}
+            </div>
             {% endif %}
-            <strong>Type:</strong> {{ poll.poll_type.replace('_', ' ').title() }}<br>
-            <strong>Created:</strong> {{ poll.created_at.strftime('%Y-%m-%d %H:%M') }}<br>
-            <strong>Status:</strong> 
-            {% if poll.is_active == 1 %}
-            <span style="color: #28a745;">✅ Active</span>
-            {% else %}
-            <span style="color: #6c757d;">❌ Inactive</span>
-            {% endif %}<br>
-            <strong>Poll ID:</strong> {{ poll.id }}<br>
-            <strong>Locations:</strong> 
-            {% set cities = poll.get_cities() %}
-            {% if cities %}
-                {{ cities|length }} cit{% if cities|length != 1 %}ies{% else %}y{% endif %} 
-                ({{ poll.zipcodes|length }} zip code{% if poll.zipcodes|length != 1 %}s{% endif %})
+            
+            <div class="meta-row">
+                <strong>Type:</strong> {{ poll.poll_type.replace('_', ' ').title() }}
+            </div>
+            
+            <div class="meta-row">
+                <strong>Created:</strong> {{ poll.created_at.strftime('%Y-%m-%d %H:%M') }}
+            </div>
+            
+            <div class="meta-row">
+                <strong>Status:</strong> 
+                {% if poll.is_active == 1 %}
+                <span style="color: #28a745;">✅ Active</span>
+                {% else %}
+                <span style="color: #6c757d;">❌ Inactive</span>
+                {% endif %}
+            </div>
+            
+            <div class="meta-row">
+                <strong>Poll ID:</strong> {{ poll.id }}
+            </div>
+            
+            <!-- 🔴 使用预加载的数据 -->
+            <div class="meta-row">
+                <strong>Locations:</strong> 
+                {% if cities %}
+                    {{ cities|length }} cit{% if cities|length != 1 %}ies{% else %}y{% endif %}, 
+                    {{ zipcodes_list|length }} zip code{% if zipcodes_list|length != 1 %}s{% endif %}
+                {% else %}
+                    No locations
+                {% endif %}
+            </div>
+            
+            <!-- 🔴 显示城市列表 -->
+            {% if cities and cities|length > 0 %}
+            <div class="meta-row">
+                <strong>Cities:</strong>
+                <div style="margin-top: 5px;">
+                    {% for city in cities %}
+                    <span class="zipcode-tag">
+                        📍 {{ city.city }}, {{ city.state }}
+                    </span>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- 🔴 显示邮编详情 -->
+            {% if zipcodes_list and zipcodes_list|length > 0 %}
+            <div class="meta-row">
+                <strong>Zip Codes:</strong>
+                <div style="margin-top: 5px;">
+                    {% for zip_code, city, state in zipcodes_list[:10] %}
+                    <span class="zipcode-tag">
+                        {{ zip_code }} ({{ city }}, {{ state }})
+                    </span>
+                    {% endfor %}
+                    {% if zipcodes_list|length > 10 %}
+                    <span style="color: #666; font-size: 13px; margin-left: 5px;">
+                        +{{ zipcodes_list|length - 10 }} more
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
             {% endif %}
         </div>
         
