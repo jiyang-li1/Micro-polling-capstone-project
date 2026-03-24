@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Poll - {{ poll.title }}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .required {
+            color: #dc3545;
+        }
+        
+        input[type="text"],
+        input[type="number"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        
+        input:focus,
+        textarea:focus,
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        
+        .help-text {
+            font-size: 13px;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .poll-type-display {
+            display: inline-block;
+            padding: 8px 16px;
+            background: #e3f2fd;
+            color: #1976d2;
+            border-radius: 12px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        
+        .option-item {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+        
+        .option-item input {
+            flex: 1;
+        }
+        
+        .btn-remove {
+            padding: 8px 12px;
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        
+        .btn-add {
+            padding: 10px 20px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        
+        .flash {
+            padding: 12px 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        
+        .flash.success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .flash.error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        
+        .buttons {
+            margin-top: 30px;
+            display: flex;
+            gap: 15px;
+        }
+        
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #5568d3;
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .warning-box {
+            padding: 15px;
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 5px;
+            color: #856404;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>✏️ Edit Poll</h1>
+        
+        <div class="poll-type-display">
+            {% if poll.poll_type == 'single_choice' %}🔘 Single Choice
+            {% elif poll.poll_type == 'multiple_choice' %}☑️ Multiple Choice
+            {% elif poll.poll_type == 'rating_scale' %}⭐ Rating Scale
+            {% elif poll.poll_type == 'ranked_choice' %}🔢 Ranked Choice
+            {% endif %}
+        </div>
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                <div class="flash {{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        
+        <div class="warning-box">
+            ⚠️ <strong>Note:</strong> Poll type cannot be changed after creation. Editing options will not affect existing votes.
+        </div>
+        
+        <form method="POST">
+            <!-- Basic Information -->
+            <div class="form-group">
+                <label for="title">Poll Title <span class="required">*</span></label>
+                <input type="text" id="title" name="title" value="{{ poll.title }}" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="question">Question <span class="required">*</span></label>
+                <textarea id="question" name="question" required>{{ poll.question }}</textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="description">Description (Optional)</label>
+                <textarea id="description" name="description">{{ poll.description or '' }}</textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="is_active">Status</label>
+                <select id="is_active" name="is_active">
+                    <option value="1" {% if poll.is_active == 1 %}selected{% endif %}>✅ Active</option>
+                    <option value="0" {% if poll.is_active == 0 %}selected{% endif %}>❌ Inactive</option>
+                </select>
+            </div>
+            
+            <!-- Options (for non-rating polls) -->
+            {% if poll.poll_type in ['single_choice', 'multiple_choice', 'ranked_choice'] %}
+            <div class="form-group">
+                <label>Options <span class="required">*</span></label>
+                <div id="optionsContainer">
+                    {% for option in poll.get_options() %}
+                    <div class="option-item">
+                        <input type="text" name="option_{{ loop.index }}" value="{{ option }}" required>
+                        {% if loop.index > 2 %}
+                        <button type="button" class="btn-remove" onclick="this.parentElement.remove()">✕</button>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+                <button type="button" class="btn-add" onclick="addOption()">+ Add Option</button>
+            </div>
+            {% endif %}
+            
+            <!-- Multiple Choice Settings -->
+            {% if poll.poll_type == 'multiple_choice' %}
+            <div class="form-group">
+                <label for="min_choices">Minimum Choices</label>
+                <input type="number" id="min_choices" name="min_choices" value="{{ poll.min_choices }}" min="1">
+            </div>
+            
+            <div class="form-group">
+                <label for="max_choices">Maximum Choices (Optional)</label>
+                <input type="number" id="max_choices" name="max_choices" value="{{ poll.max_choices or '' }}" placeholder="Leave empty for no limit">
+            </div>
+            {% endif %}
+            
+            <!-- Rating Scale Settings -->
+            {% if poll.poll_type == 'rating_scale' %}
+            <div class="form-group">
+                <label for="rating_min">Minimum Rating</label>
+                <input type="number" id="rating_min" name="rating_min" value="{{ poll.rating_min }}" min="1">
+            </div>
+            
+            <div class="form-group">
+                <label for="rating_max">Maximum Rating</label>
+                <input type="number" id="rating_max" name="rating_max" value="{{ poll.rating_max }}" min="2" max="10">
+            </div>
+            
+            {% set labels = poll.get_rating_labels() %}
+            <div class="form-group">
+                <label>Rating Labels (Optional)</label>
+                <input type="text" name="rating_label_min" value="{{ labels.get(poll.rating_min|string, '') }}" placeholder="Label for minimum rating">
+            </div>
+            
+            <div class="form-group">
+                <input type="text" name="rating_label_max" value="{{ labels.get(poll.rating_max|string, '') }}" placeholder="Label for maximum rating">
+            </div>
+            {% endif %}
+            
+            <!-- Geographic Information (Read-only for now) -->
+            <div class="form-group">
+                <label>Current Locations</label>
+                <div style="padding: 15px; background: #f8f9fa; border-radius: 5px;">
+                    {% for city in poll.get_cities() %}
+                    <span style="display: inline-block; padding: 5px 10px; background: #e3f2fd; border-radius: 12px; margin: 5px;">
+                        {{ city.city }}, {{ city.state }}
+                    </span>
+                    {% endfor %}
+                    <br><br>
+                    <span style="color: #666; font-size: 14px;">
+                        {{ poll.zipcodes|length }} zip code(s) associated
+                    </span>
+                </div>
+                <p class="help-text">Location editing not yet implemented. Create a new poll to change locations.</p>
+            </div>
+            
+            <!-- Hidden fields to preserve locations -->
+            <input type="hidden" name="zipcodes" value='{{ poll.zipcodes|map(attribute="zip_code")|list|tojson }}'>
+            <input type="hidden" name="cities" value='{{ poll.get_cities()|tojson }}'>
+            
+            <!-- Submit Buttons -->
+            <div class="buttons">
+                <button type="submit" class="btn btn-primary">💾 Save Changes</button>
+                <a href="{{ url_for('admin_poll_detail', poll_id=poll.id) }}" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        let optionCount = {{ poll.get_options()|length }};
+        
+        function addOption() {
+            optionCount++;
+            const container = document.getElementById('optionsContainer');
+            const div = document.createElement('div');
+            div.className = 'option-item';
+            div.innerHTML = `
+                <input type="text" name="option_${optionCount}" placeholder="Option ${optionCount}">
+                <button type="button" class="btn-remove" onclick="this.parentElement.remove()">✕</button>
+            `;
+            container.appendChild(div);
+        }
+    </script>
+</body>
+</html>
