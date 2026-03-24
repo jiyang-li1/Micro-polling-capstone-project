@@ -585,6 +585,44 @@ def admin_poll_detail(poll_id):
         states=states
     )
 
+@app.route('/admin/poll/<int:poll_id>/results')
+@login_required
+def admin_poll_results(poll_id):
+    """管理员查看投票结果（admin 风格）"""
+    
+    db = get_db()
+    poll = get_poll_by_id(db, poll_id)
+    
+    if not poll:
+        flash('Poll not found', 'error')
+        db.close()
+        return redirect(url_for('admin_dashboard'))
+    
+    # 获取结果
+    data = get_poll_results(db, poll_id)
+    
+    # 获取最近的投票记录
+    votes = db.query(Vote).filter_by(poll_id=poll_id).order_by(Vote.voted_at.desc()).limit(20).all()
+    
+    # 预加载数据
+    zipcodes_list = [(zc.zip_code, zc.city, zc.state) for zc in poll.zipcodes]
+    cities = poll.get_cities()
+    states = poll.get_states()
+    
+    db.close()
+    
+    return render_template(
+        'admin/poll_results.html',
+        poll=poll,
+        results=data['results'],
+        total_votes=data['total_votes'],
+        votes=votes,
+        zipcodes_list=zipcodes_list,
+        cities=cities,
+        states=states
+    )
+
+
 # app_v2.py - 添加编辑投票路由
 
 @app.route('/admin/poll/<int:poll_id>/edit', methods=['GET', 'POST'])
