@@ -549,7 +549,7 @@ def admin_create_poll():
 @app.route('/admin/poll/<int:poll_id>')
 @login_required
 def admin_poll_detail(poll_id):
-
+    """查看投票详情"""
     
     db = get_db()
     poll = get_poll_by_id(db, poll_id)
@@ -559,20 +559,122 @@ def admin_poll_detail(poll_id):
         db.close()
         return redirect(url_for('admin_dashboard'))
     
+    # 🔴 在关闭 session 之前获取所有需要的数据
     data = get_poll_results(db, poll_id)
     votes = db.query(Vote).filter_by(poll_id=poll_id).order_by(Vote.voted_at.desc()).limit(10).all()
     
+    # 🔴 预加载 zipcodes 关系（强制加载）
+    _ = poll.zipcodes  # 访问一次，触发加载
+    zipcodes_list = [(zc.zip_code, zc.city, zc.state) for zc in poll.zipcodes]
+    
+    # 🔴 获取其他需要的数据
+    cities = poll.get_cities()
+    states = poll.get_states()
+    
     db.close()
     
+    # 🔴 将数据传递给模板
     return render_template(
         'admin/poll_detail_v2.html',
         poll=poll,
         results=data['results'],
         total_votes=data['total_votes'],
-        votes=votes
+        votes=votes,
+        zipcodes_list=zipcodes_list,  # 🔴 传递预加载的数据
+        cities=cities,
+        states=states
     )
 
+# app_v2.py - 添加编辑投票路由
 
+@app.route('/admin/poll/<int:poll_id>/edit', methods=['GET', 'POST'])
+@login_required
+def admin_edit_poll(poll_id):
+    """编辑投票"""
+    
+    db = get_db()
+    poll = get_poll_by_id(db, poll_id)
+    
+    if not poll:
+        flash('Poll not found', 'error')
+        db.close()
+        return redirect(url_for('admin_dashboard'))
+    
+    if request.method == 'POST':
+        try:
+            # 更新基本信息
+            poll.title = request.form.get('title', '').strip()
+            poll.question = request.form.get('question', '').strip()
+            poll.description = request.form.get('description', '').strip()
+            poll.is_active = int(request.form.get('is_active', 1))
+            
+            # 根据类型更新选项
+            if poll.poll_type in ['single_choice', 'multiple_choice', 'ranked_choice']:
+                options = []
+                i = 1
+                while True:
+                    option_key = f'option_{i}'
+                    if option_key in request.form:
+                        option = request.form[option_key].strip()
+                        if option:
+                            options.append(option)
+                        i += 1
+                    else:
+                        break
+                
+                if len(options) >= 2:
+                    poll.set_options(options)
+                else:
+                    flash('At least 2 options are required', 'error')
+                    db.close()
+                    return redirect(url_for('admin_edit_poll', poll_id=poll_id))
+                
+                # 多选配置
+                if poll.poll_type == 'multiple_choice':
+                    poll.min_choices = int(request.form.get('min_choices', 1))
+                    max_choices = request.form.get('max_choices', '')
+                    poll.max_choices = int(max_choices) if max_choices else None
+            
+            elif poll.poll_type == 'rating_scale':
+                poll.rating_min = int(request.form.get('rating_min', 1))
+                poll.rating_max = int(request.form.get('rating_max', 5))
+                
+                label_min = request.form.get('rating_label_min', '').strip()
+                label_max = request.form.get('rating_label_max', '').strip()
+                
+                if label_min or label_max:
+                    labels = {}
+                    if label_min:
+                        labels[str(poll.rating_min)] = label_min
+                    if label_max:
+                        labels[str(poll.rating_max)] = label_max
+                    poll.set_rating_labels(labels)
+            
+            db.commit()
+            flash('✅ Poll updated successfully!', 'success')
+            db.close()
+            return redirect(url_for('admin_poll_detail', poll_id=poll_id))
+        
+        except Exception as e:
+            flash(f'❌ Error updating poll: {str(e)}', 'error')
+            db.rollback()
+            db.close()
+            return redirect(url_for('admin_edit_poll', poll_id=poll_id))
+    
+    # 🔴 GET 请求：预加载所有需要的数据
+    zipcodes_list = [zc.zip_code for zc in poll.zipcodes]
+    cities = poll.get_cities()
+    states = poll.get_states()
+    
+    db.close()
+    
+    return render_template(
+        'admin/edit_poll_v2.html', 
+        poll=poll,
+        zipcodes_list=zipcodes_list,
+        cities=cities,
+        states=states
+    )
 
 
 @app.route('/admin/poll/<int:poll_id>/delete', methods=['POST'])
