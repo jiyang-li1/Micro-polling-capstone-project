@@ -63,7 +63,6 @@
             margin-bottom: 30px;
         }
         
-        /* Single Choice & Ranked Choice - Buttons */
         .option-button {
             display: block;
             width: 100%;
@@ -90,7 +89,6 @@
             transform: translateY(0);
         }
         
-        /* Multiple Choice - Checkboxes */
         .checkbox-option {
             display: block;
             padding: 15px;
@@ -120,7 +118,6 @@
             font-weight: bold;
         }
         
-        /* Rating Scale - Stars */
         .rating-container {
             display: flex;
             flex-direction: column;
@@ -139,6 +136,7 @@
             cursor: pointer;
             color: #ddd;
             transition: all 0.2s;
+            user-select: none;
         }
         
         .star:hover,
@@ -156,7 +154,6 @@
             color: #666;
         }
         
-        /* Ranked Choice - Drag and Drop */
         .ranked-options {
             list-style: none;
             padding: 0;
@@ -206,6 +203,7 @@
         .drag-handle {
             color: #999;
             font-size: 24px;
+            user-select: none;
         }
         
         .ranking-instruction {
@@ -217,7 +215,6 @@
             border-radius: 8px;
         }
         
-        /* Submit Button */
         .submit-button {
             width: 100%;
             padding: 18px;
@@ -252,6 +249,10 @@
             border-left: 4px solid #007bff;
         }
         
+        .info strong {
+            color: #333;
+        }
+        
         .back-link {
             display: inline-block;
             margin-top: 20px;
@@ -270,16 +271,57 @@
             color: #666;
             font-size: 14px;
         }
+        
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            .container {
+                padding: 20px;
+                margin: 20px auto;
+            }
+            
+            h2 {
+                font-size: 24px;
+            }
+            
+            h4 {
+                font-size: 16px;
+            }
+            
+            .option-button {
+                font-size: 16px;
+                padding: 15px;
+            }
+            
+            .star {
+                font-size: 36px;
+            }
+            
+            .ranked-option {
+                padding: 12px;
+            }
+            
+            .rank-number {
+                width: 35px;
+                height: 35px;
+                font-size: 16px;
+            }
+            
+            .rank-label {
+                font-size: 16px;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <!-- Poll Type Badge -->
         <span class="poll-type-badge">
-            {% if poll.poll_type == 'single_choice' %}🔘 Single Choice
-            {% elif poll.poll_type == 'multiple_choice' %}☑️ Multiple Choice
-            {% elif poll.poll_type == 'rating_scale' %}⭐ Rating Scale
-            {% elif poll.poll_type == 'ranked_choice' %}🔢 Ranked Choice
+            {% if poll.poll_type == 'single_choice' %}Single Choice
+            {% elif poll.poll_type == 'multiple_choice' %}Multiple Choice
+            {% elif poll.poll_type == 'rating_scale' %}Rating Scale
+            {% elif poll.poll_type == 'ranked_choice' %}Ranked Choice
             {% endif %}
         </span>
         
@@ -294,7 +336,6 @@
         
         <form method="POST" action="{{ url_for('submit_vote', poll_id=poll.id) }}" id="voteForm">
             
-            <!-- Single Choice -->
             {% if poll.poll_type == 'single_choice' %}
                 {% for option in poll.get_options() %}
                 <button type="submit" name="choice" value="{{ loop.index0 }}" class="option-button">
@@ -302,7 +343,6 @@
                 </button>
                 {% endfor %}
             
-            <!-- Multiple Choice -->
             {% elif poll.poll_type == 'multiple_choice' %}
                 <div class="ranking-instruction">
                     Select 
@@ -331,12 +371,11 @@
                 
                 <button type="submit" class="submit-button" id="submitBtn">Submit Vote</button>
             
-            <!-- Rating Scale -->
             {% elif poll.poll_type == 'rating_scale' %}
                 <div class="rating-container">
                     <div class="rating-stars" id="ratingStars">
                         {% for i in range(poll.rating_min, poll.rating_max + 1) %}
-                        <span class="star" data-rating="{{ i }}" onclick="selectRating({{ i }})">★</span>
+                        <span class="star" data-rating="{{ i }}" onclick="selectRating({{ i }})">&#9733;</span>
                         {% endfor %}
                     </div>
                     
@@ -353,7 +392,6 @@
                 
                 <button type="submit" class="submit-button" id="submitBtn" disabled>Submit Rating</button>
             
-            <!-- Ranked Choice -->
             {% elif poll.poll_type == 'ranked_choice' %}
                 <div class="ranking-instruction">
                     Drag to rank options by preference (1st choice at top)
@@ -364,7 +402,7 @@
                     <li class="ranked-option" draggable="true" data-index="{{ loop.index0 }}">
                         <span class="rank-number">{{ loop.index }}</span>
                         <span class="rank-label">{{ option }}</span>
-                        <span class="drag-handle">☰</span>
+                        <span class="drag-handle">&#9776;</span>
                     </li>
                     {% endfor %}
                 </ul>
@@ -377,19 +415,16 @@
         </form>
         
         <div class="info">
-            📍 Location: <strong>{{ poll.get_cities()[0].city if poll.get_cities() else 'Multiple' }}, 
-            {{ poll.get_states()[0] if poll.get_states() else '' }}</strong> |
-            📅 Created: {{ poll.created_at.strftime('%Y-%m-%d %H:%M') }} |
-            🆔 Poll ID: {{ poll.id }}
+            <strong>Location:</strong> {{ poll.get_cities()[0].city if poll.get_cities() else 'Multiple' }}, 
+            {{ poll.get_states()[0] if poll.get_states() else '' }} |
+            <strong>Created:</strong> {{ poll.created_at.strftime('%Y-%m-%d %H:%M') }} |
+            <strong>Poll ID:</strong> {{ poll.id }}
         </div>
         
-        <a href="{{ url_for('poll_results', poll_id=poll.id) }}" class="back-link">📊 View Results</a>
-        <br>
-        <a href="{{ url_for('index') }}" class="back-link">← Back to Home</a>
+        <a href="{{ url_for('index') }}" class="back-link">Back to Home</a>
     </div>
 
     <script>
-        // Multiple Choice - Count selected
         {% if poll.poll_type == 'multiple_choice' %}
         function updateChoiceCount() {
             const checkboxes = document.querySelectorAll('input[name="choices"]:checked');
@@ -407,11 +442,9 @@
             }
         }
         
-        // Initialize
         updateChoiceCount();
         {% endif %}
         
-        // Rating Scale
         {% if poll.poll_type == 'rating_scale' %}
         let selectedRating = 0;
         
@@ -420,7 +453,6 @@
             document.getElementById('ratingInput').value = rating;
             document.getElementById('submitBtn').disabled = false;
             
-            // Update star display
             const stars = document.querySelectorAll('.star');
             stars.forEach(star => {
                 const starRating = parseInt(star.dataset.rating);
@@ -433,7 +465,6 @@
         }
         {% endif %}
         
-        // Ranked Choice - Drag and Drop
         {% if poll.poll_type == 'ranked_choice' %}
         const rankedList = document.getElementById('rankedList');
         let draggedElement = null;
@@ -478,17 +509,13 @@
             const ranking = [];
             
             items.forEach((item, index) => {
-                // Update rank number display
                 item.querySelector('.rank-number').textContent = index + 1;
-                
-                // Store original index
                 ranking.push(parseInt(item.dataset.index));
             });
             
             document.getElementById('rankingInput').value = JSON.stringify(ranking);
         }
         
-        // Initialize ranking
         updateRanking();
         {% endif %}
     </script>
