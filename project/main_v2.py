@@ -1,4 +1,4 @@
-# app_v2.py - Flask 应用 V2（支持多种投票类型）
+# app_v2.py - Flask Application V2 (supports multiple poll types)
 import csv
 from io import StringIO
 from flask import make_response
@@ -65,7 +65,7 @@ def login_required(f):
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
-    """首页：输入邮编、城市名或学区名查询投票"""
+    """Home page: enter zip code, city name, or school district name to find polls"""
     
     if request.method == 'POST':
         query = request.form.get('query', '').strip()
@@ -77,18 +77,18 @@ def index():
         db = get_db()
         polls = []
         
-        # 策略1：如果是5位数字，当作邮编
+        # Strategy 1: if it's a 5-digit number, treat as zip code
         if query.isdigit() and len(query) == 5:
             print(f"Searching by zipcode: {query}")
             polls = get_polls_by_zipcode(db, query)
             if polls:
                 print(f"Found {len(polls)} polls by zipcode")
         
-        # 策略2：尝试按学区名搜索（直接关联）
+        # Strategy 2: try searching by district name (direct association)
         if not polls:
             print(f"Searching by district: {query}")
             
-            # 查找匹配的学区
+            # Find matching districts
             districts = db.query(School).filter(
                 School.district.ilike(f'%{query}%'),
                 School.record_type == 'District'
@@ -97,7 +97,7 @@ def index():
             print(f"Found {len(districts)} districts")
             
             if districts:
-                # 新逻辑：查找直接关联这个学区的投票
+                # New logic: find polls directly linked to this district
                 district_ids = [d.id for d in districts]
                 
                 poll_ids = db.query(poll_districts.c.poll_id).filter(
@@ -114,7 +114,7 @@ def index():
                     ).all()
                     print(f"Found {len(polls)} active polls")
         
-        # 策略3：尝试按城市搜索
+        # Strategy 3: try searching by city
         if not polls:
             print(f"Searching by city: {query}")
             
@@ -443,12 +443,12 @@ def admin_dashboard():
 
 
 
-# app_v2.py - 修改创建投票逻辑
+# app_v2.py - Modify poll creation logic
 
 @app.route('/admin/poll/create', methods=['GET', 'POST'])
 @login_required
 def admin_create_poll():
-    """创建新投票"""
+    """Create a new poll"""
     
     if request.method == 'POST':
         import json
@@ -456,7 +456,7 @@ def admin_create_poll():
         db = get_db()
         
         try:
-            # 基本信息
+            # Basic information
             title = request.form.get('title', '').strip()
             question = request.form.get('question', '').strip()
             description = request.form.get('description', '').strip()
@@ -466,7 +466,7 @@ def admin_create_poll():
                 flash('Title and question are required', 'error')
                 return redirect(url_for('admin_create_poll'))
             
-            # 创建投票对象
+            # Create poll object
             poll = Poll(
                 title=title,
                 question=question,
@@ -474,7 +474,7 @@ def admin_create_poll():
                 poll_type=poll_type
             )
             
-            # 根据类型设置选项和配置
+            # Set options and configuration based on type
             if poll_type in ['single_choice', 'multiple_choice', 'ranked_choice']:
                 options = []
                 for key in request.form:
@@ -510,26 +510,26 @@ def admin_create_poll():
                         labels[str(poll.rating_max)] = label_max
                     poll.set_rating_labels(labels)
             
-            # 处理地理位置
+            # Handle geographic location
             zipcodes_json = request.form.get('zipcodes', '[]')
             cities_json = request.form.get('cities', '[]')
-            districts_json = request.form.get('districts', '[]')  # 新增：获取学区数据
+            districts_json = request.form.get('districts', '[]')  # New: get district data
             
             selected_zipcodes = json.loads(zipcodes_json)
             selected_cities = json.loads(cities_json)
-            selected_districts = json.loads(districts_json)  # 新增
+            selected_districts = json.loads(districts_json)  # New
             
             if not selected_zipcodes and not selected_cities and not selected_districts:
                 flash('Please select at least one zip code, city, or school district', 'error')
                 db.close()
                 return redirect(url_for('admin_create_poll'))
             
-            # 收集所有邮编对象
+            # Collect all zip code objects
             zipcode_objects = []
             cities_list = []
             states_list = set()
             
-            # 添加直接选择的邮编
+            # Add directly selected zip codes
             for zip_code in selected_zipcodes:
                 zc = db.query(ZipCode).filter_by(zip_code=zip_code).first()
                 
@@ -550,7 +550,7 @@ def admin_create_poll():
                     cities_list.append({"city": zc.city, "state": zc.state})
                     states_list.add(zc.state)
             
-            # 添加城市的所有邮编
+            # Add all zip codes for selected cities
             for city_data in selected_cities:
                 city = city_data['city']
                 state = city_data['state']
@@ -567,13 +567,13 @@ def admin_create_poll():
                 cities_list.append({"city": city, "state": state})
                 states_list.add(state)
             
-            # 新增：处理学区关联
+            # New: handle district associations
             district_objects = []
             
             for district_data in selected_districts:
                 district_name = district_data['district']
                 
-                # 查找学区（只查找 District 类型）
+                # Find district (only search for District type)
                 district = db.query(School).filter(
                     School.district == district_name,
                     School.record_type == 'District'
@@ -582,7 +582,7 @@ def admin_create_poll():
                 if district:
                     district_objects.append(district)
                     
-                    # 获取学区的邮编
+                    # Get zip codes for the district
                     district_zipcodes = db.query(School.zip_code).filter(
                         School.district == district_name,
                         School.zip_code.isnot(None)
@@ -608,13 +608,13 @@ def admin_create_poll():
                             cities_list.append({"city": zc.city, "state": zc.state})
                             states_list.add(zc.state)
             
-            # 关联邮编
+            # Associate zip codes
             poll.zipcodes.extend(zipcode_objects)
             
-            # 新增：关联学区
+            # New: associate districts
             poll.districts.extend(district_objects)
             
-            # 设置城市和州信息
+            # Set city and state information
             poll.set_cities(cities_list)
             poll.set_states(list(states_list))
             
@@ -632,25 +632,25 @@ def admin_create_poll():
     
     return render_template('admin/create_poll_v2.html')
 # ============================================
-# 管理员：投票详情（重定向到结果页面）
+# Admin: Poll Detail (redirect to results page)
 # ============================================
 
 @app.route('/admin/poll/<int:poll_id>')
 @login_required
 def admin_poll_detail(poll_id):
-    """查看投票详情 - 重定向到管理员结果页面"""
-    # 🔴 直接重定向到 admin_poll_results
+    """View poll detail - redirect to admin results page"""
+    # 🔴 Directly redirect to admin_poll_results
     return redirect(url_for('admin_poll_results', poll_id=poll_id))
 
 
 # ============================================
-# 管理员：查看结果（Admin 风格）
+# Admin: View Results (Admin style)
 # ============================================
 
 @app.route('/admin/poll/<int:poll_id>/results')
 @login_required
 def admin_poll_results(poll_id):
-    """管理员查看投票结果（Admin 风格）"""
+    """Admin view poll results (Admin style)"""
     
     db = get_db()
     poll = get_poll_by_id(db, poll_id)
@@ -660,20 +660,20 @@ def admin_poll_results(poll_id):
         db.close()
         return redirect(url_for('admin_dashboard'))
     
-    # 获取结果
+    # Get results
     data = get_poll_results(db, poll_id)
     
-    # 获取最近的投票记录
+    # Get recent vote records
     votes = db.query(Vote).filter_by(poll_id=poll_id).order_by(Vote.voted_at.desc()).limit(20).all()
     
-    # 🔴 预加载数据
+    # 🔴 Preload data
     zipcodes_list = [(zc.zip_code, zc.city, zc.state) for zc in poll.zipcodes]
     cities = poll.get_cities()
     states = poll.get_states()
     
     db.close()
     
-    # 🔴 渲染 Admin 风格的结果页面
+    # 🔴 Render Admin style results page
     return render_template(
         'admin/poll_results.html',
         poll=poll,
@@ -685,12 +685,12 @@ def admin_poll_results(poll_id):
         states=states
     )
 
-# app_v2.py - 添加编辑投票路由
+# app_v2.py - Add edit poll route
 
 @app.route('/admin/poll/<int:poll_id>/edit', methods=['GET', 'POST'])
 @login_required
 def admin_edit_poll(poll_id):
-    """编辑投票"""
+    """Edit poll"""
     
     db = get_db()
     poll = get_poll_by_id(db, poll_id)
@@ -702,13 +702,13 @@ def admin_edit_poll(poll_id):
     
     if request.method == 'POST':
         try:
-            # 更新基本信息
+            # Update basic information
             poll.title = request.form.get('title', '').strip()
             poll.question = request.form.get('question', '').strip()
             poll.description = request.form.get('description', '').strip()
             poll.is_active = int(request.form.get('is_active', 1))
             
-            # 根据类型更新选项
+            # Update options based on type
             if poll.poll_type in ['single_choice', 'multiple_choice', 'ranked_choice']:
                 options = []
                 i = 1
@@ -729,7 +729,7 @@ def admin_edit_poll(poll_id):
                     db.close()
                     return redirect(url_for('admin_edit_poll', poll_id=poll_id))
                 
-                # 多选配置
+                # Multiple choice configuration
                 if poll.poll_type == 'multiple_choice':
                     poll.min_choices = int(request.form.get('min_choices', 1))
                     max_choices = request.form.get('max_choices', '')
@@ -761,7 +761,7 @@ def admin_edit_poll(poll_id):
             db.close()
             return redirect(url_for('admin_edit_poll', poll_id=poll_id))
     
-    # 🔴 GET 请求：预加载所有需要的数据
+    # 🔴 GET request: preload all required data
     zipcodes_list = [zc.zip_code for zc in poll.zipcodes]
     cities = poll.get_cities()
     states = poll.get_states()
@@ -842,13 +842,13 @@ def server_error(e):
 
 
 # ============================================
-# 管理员：导出投票数据为 CSV
+# Admin: Export Poll Data as CSV
 # ============================================
 
 @app.route('/admin/poll/<int:poll_id>/export')
 @login_required
 def export_poll_csv(poll_id):
-    """导出投票数据为 CSV"""
+    """Export poll data as CSV"""
     
     db = get_db()
     poll = get_poll_by_id(db, poll_id)
@@ -858,17 +858,17 @@ def export_poll_csv(poll_id):
         db.close()
         return redirect(url_for('admin_dashboard'))
     
-    # 获取所有投票记录
+    # Get all vote records
     votes = db.query(Vote).filter_by(poll_id=poll_id).order_by(Vote.voted_at).all()
     
-    # 预加载邮编信息
+    # Preload zip code information
     zipcodes_list = [(zc.zip_code, zc.city, zc.state) for zc in poll.zipcodes]
     
-    # 创建 CSV
+    # Create CSV
     si = StringIO()
     writer = csv.writer(si)
     
-    # 写入标题信息
+    # Write header information
     writer.writerow(['Poll Export'])
     writer.writerow(['Poll ID', poll.id])
     writer.writerow(['Title', poll.title])
@@ -878,7 +878,7 @@ def export_poll_csv(poll_id):
     writer.writerow(['Total Votes', len(votes)])
     writer.writerow([])
     
-    # 写入投票数据
+    # Write vote data
     if poll.poll_type == 'single_choice':
         writer.writerow(['Vote ID', 'Choice', 'Voted At'])
         options = poll.get_options()
@@ -922,7 +922,7 @@ def export_poll_csv(poll_id):
                 vote.voted_at.strftime('%Y-%m-%d %H:%M:%S')
             ])
     
-    # 添加统计摘要
+    # Add statistics summary
     writer.writerow([])
     writer.writerow(['Summary'])
     
@@ -942,7 +942,7 @@ def export_poll_csv(poll_id):
     
     db.close()
     
-    # 创建响应
+    # Create response
     output = make_response(si.getvalue())
     output.headers["Content-Disposition"] = f"attachment; filename=poll_{poll_id}_export.csv"
     output.headers["Content-type"] = "text/csv"
@@ -952,8 +952,8 @@ def export_poll_csv(poll_id):
 @app.route('/api/search-schools')
 def api_search_schools():
     """
-    搜索学区 API
-    支持：学区名、城市名、县名、邮编
+    Search district API
+    Supports: district name, city name, county name, zip code
     """
     query = request.args.get('q', '').strip()
     
@@ -962,7 +962,7 @@ def api_search_schools():
     
     db = get_db()
     
-    # 搜索学区（只返回 District 类型）
+    # Search districts (only return District type)
     schools = db.query(School).filter(
         School.record_type == 'District',
         (School.district.ilike(f'%{query}%')) |
@@ -972,7 +972,7 @@ def api_search_schools():
     
     results = []
     for school in schools:
-        # 统计该学区有多少个邮编
+        # Count the number of zip codes for this district
         zipcodes = db.query(School.zip_code).filter(
             School.district == school.district,
             School.zip_code.isnot(None)
@@ -997,7 +997,7 @@ def api_search_schools():
 @app.route('/api/get-district-zipcodes')
 def api_get_district_zipcodes():
     """
-    根据学区名获取所有邮编
+    Get all zip codes by district name
     """
     district_name = request.args.get('district', '').strip()
     
@@ -1006,7 +1006,7 @@ def api_get_district_zipcodes():
     
     db = get_db()
     
-    # 获取该学区的所有邮编
+    # Get all zip codes for this district
     zipcodes_data = db.query(
         School.zip_code,
         School.city
@@ -1015,7 +1015,7 @@ def api_get_district_zipcodes():
         School.zip_code.isnot(None)
     ).distinct().all()
     
-    # 转换为字典列表
+    # Convert to list of dictionaries
     zipcodes = [
         {
             'zip_code': zc,
