@@ -1,96 +1,42 @@
-# migrate_to_v2.py - 从旧数据库迁移到新数据库
+# migrate_add_poll_districts.py - 添加 poll_districts 表
 
-from model import init_db as init_db_v1, get_session as get_session_v1
-from model import Poll as PollV1, Vote as VoteV1, ZipCode as ZipCodeV1, Admin as AdminV1
-from model_v2 import init_db as init_db_v2, get_session as get_session_v2
-from model_v2 import Poll as PollV2, Vote as VoteV2, ZipCode as ZipCodeV2, Admin as AdminV2
+from model_v2 import init_db, Base, get_session, poll_districts
+from sqlalchemy import inspect
 
+print("\n" + "="*60)
+print("添加 poll_districts 关联表")
+print("="*60)
 
+# 连接数据库
+engine = init_db('sqlite:///polling_v2.db')
 
+# 检查表是否已存在
+inspector = inspect(engine)
+existing_tables = inspector.get_table_names()
 
-engine_v1 = init_db_v1('sqlite:///polling.db')
-db_v1 = get_session_v1(engine_v1)
+print(f"\n当前表: {existing_tables}")
 
+if 'poll_districts' in existing_tables:
+    print("\npoll_districts 表已存在，无需创建")
+else:
+    print("\n创建 poll_districts 表...")
+    # 只创建这个新表
+    Base.metadata.tables['poll_districts'].create(engine)
+    print("创建成功！")
 
-engine_v2 = init_db_v2('sqlite:///polling_v2.db')
-db_v2 = get_session_v2(engine_v2)
-
-
-zipcodes_v1 = db_v1.query(ZipCodeV1).all()
-zipcode_map = {}  
-for zc in zipcodes_v1:
-    zc_v2 = ZipCodeV2(
-        zip_code=zc.zip_code,
-        city=zc.city,
-        state=zc.state,
-    )
-    db_v2.add(zc_v2)
-    db_v2.flush()  
-    zipcode_map[zc.zip_code] = zc_v2
-
-db_v2.commit()
-
-'''
-admins_v1 = db_v1.query(AdminV1).all()
-
-for admin in admins_v1:
-    admin_v2 = AdminV2(
-        username=admin.username,
-        password_hash=admin.password_hash,
-        created_at=admin.created_at
-    )
-    db_v2.add(admin_v2)
-
-db_v2.commit()
-'''
-
-
-polls_v1 = db_v1.query(PollV1).all()
-poll_map = {}  
-
-for poll in polls_v1:
-    poll_v2 = PollV2(
-        title=poll.title,
-        question=poll.question,
-        poll_type='single_choice', 
-        created_at=poll.created_at,
-        is_active=poll.is_active
-    )
-    poll_v2.set_options(poll.get_options())
+# 验证
+inspector = inspect(engine)
+if 'poll_districts' in inspector.get_table_names():
+    print("\n验证：poll_districts 表已创建")
     
+    # 显示表结构
+    columns = inspector.get_columns('poll_districts')
+    print("\n表结构:")
+    for col in columns:
+        print(f"  - {col['name']}: {col['type']}")
+else:
+    print("\n错误：表创建失败")
 
-    if poll.zip_code in zipcode_map:
-        zipcode_obj = zipcode_map[poll.zip_code]
-        poll_v2.zipcodes.append(zipcode_obj)
-        
-
-        poll_v2.set_cities([{"city": zipcode_obj.city, "state": zipcode_obj.state}])
-        poll_v2.set_states([zipcode_obj.state])
-    
-    db_v2.add(poll_v2)
-    db_v2.flush()
-    poll_map[poll.id] = poll_v2
-
-db_v2.commit()
-print(f"{len(polls_v1)} Migrated Polls.")
-
-
-print("\nMigrating votes...")
-votes_v1 = db_v1.query(VoteV1).all()
-
-for vote in votes_v1:
-    if vote.poll_id in poll_map:
-        vote_v2 = VoteV2(
-            poll_id=poll_map[vote.poll_id].id,
-            user_id=0,
-            choice=vote.choice,
-            voted_at=vote.voted_at
-        )
-        db_v2.add(vote_v2)
-
-db_v2.commit()
-print(f" {len(votes_v1)} Votes migrated.")
-
-db_v1.close()
-db_v2.close()
-
+print("\n" + "="*60)
+print("迁移完成！")
+print("="*60 + "\n")
