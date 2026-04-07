@@ -1,4 +1,4 @@
-# fix_district_zipcodes.py - 将 schools 表的邮编同步到 zipcodes 表
+# fix_district_zipcodes.py - Sync zip codes from schools table to zipcodes table
 
 from model_v2 import init_db, get_session, School, ZipCode
 
@@ -9,7 +9,7 @@ print("\n" + "="*60)
 print("同步学区邮编到 zipcodes 表")
 print("="*60)
 
-# 获取所有学区的邮编
+# Get all district zip codes
 school_zipcodes = db.query(
     School.zip_code,
     School.city,
@@ -24,11 +24,11 @@ added = 0
 existing = 0
 
 for zip_code, city, county in school_zipcodes:
-    # 检查是否已存在
+    # Check if already exists
     zc = db.query(ZipCode).filter_by(zip_code=zip_code).first()
     
     if not zc:
-        # 创建新邮编
+        # Create new zip code
         zc = ZipCode(
             zip_code=zip_code,
             city=city,
