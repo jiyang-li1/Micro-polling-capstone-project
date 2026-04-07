@@ -1,4 +1,4 @@
-# reset_database.py - 重置数据库，只保留学区数据
+# reset_database.py - Reset database, keeping only district data
 
 import os
 from model_v2 import init_db, Base, get_session, School
@@ -7,7 +7,7 @@ print("\n" + "="*60)
 print("重置数据库")
 print("="*60)
 
-# 删除旧数据库
+# Delete old database
 db_file = 'polling_v2.db'
 if os.path.exists(db_file):
     print(f"\n删除旧数据库: {db_file}")
@@ -16,15 +16,15 @@ if os.path.exists(db_file):
 else:
     print(f"\n数据库文件不存在: {db_file}")
 
-# 创建新数据库
+# Create new database
 print("\n创建新数据库...")
 engine = init_db(f'sqlite:///{db_file}')
 
-# 创建所有表
+# Create all tables
 Base.metadata.create_all(engine)
 print("数据库表已创建")
 
-# 验证表
+# Verify tables
 db = get_session(engine)
 
 from sqlalchemy import inspect
@@ -35,7 +35,7 @@ print("\n已创建的表:")
 for table in tables:
     print(f"  - {table}")
 
-# 检查学区数据
+# Check district data
 school_count = db.query(School).count()
 print(f"\n学区数据: {school_count} 条")
 
