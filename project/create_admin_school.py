@@ -1,4 +1,4 @@
-# create_admin_school.py - 创建管理员（学区版）
+# create_admin_school.py - Create admin (school district version)
 
 from models_school import init_db, get_session, Admin
 import hashlib
@@ -20,14 +20,14 @@ if not username or not password:
     print("\n❌ 用户名和密码不能为空！")
     exit(1)
 
-# 检查是否已存在
+# Check if already exists
 existing = db.query(Admin).filter_by(username=username).first()
 if existing:
     print(f"\n❌ 用户名 '{username}' 已存在！")
     db.close()
     exit(1)
 
-# 创建管理员
+# Create admin
 admin = Admin(
     username=username,
     password_hash=hash_password(password)
