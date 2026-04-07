@@ -1,4 +1,4 @@
-# models_v2.py - 数据库模型（含学区直接关联）
+# models_v2.py - Database models (with direct district association)
 
 from sqlalchemy import create_engine, Column, Integer, String, Text, DateTime, ForeignKey, Table, desc, Index
 from sqlalchemy.orm import declarative_base, relationship, sessionmaker
@@ -7,7 +7,7 @@ import json
 
 Base = declarative_base()
 
-# 投票-邮编关联表
+# Poll-ZipCode association table
 poll_zipcodes = Table(
     'poll_zipcodes',
     Base.metadata,
@@ -16,7 +16,7 @@ poll_zipcodes = Table(
     Index('idx_poll_zip', 'poll_id', 'zipcode_id')
 )
 
-# 投票-学区关联表（新增）
+# Poll-District association table (new)
 poll_districts = Table(
     'poll_districts',
     Base.metadata,
@@ -28,7 +28,7 @@ poll_districts = Table(
 
 
 class Poll(Base):
-    """投票表"""
+    """Poll table"""
     __tablename__ = 'polls'
     
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -54,7 +54,7 @@ class Poll(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     is_active = Column(Integer, default=1)
     
-    # 关系
+    # Relationships
     zipcodes = relationship('ZipCode', secondary=poll_zipcodes, back_populates='polls', lazy='joined')
     votes = relationship('Vote', back_populates='poll', cascade='all, delete-orphan')
     districts = relationship('School', secondary=poll_districts, back_populates='polls', lazy='joined')
@@ -88,7 +88,7 @@ class Poll(Base):
 
 
 class ZipCode(Base):
-    """邮编表"""
+    """ZipCode table"""
     __tablename__ = 'zipcodes'
     
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -109,7 +109,7 @@ class ZipCode(Base):
 
 
 class Vote(Base):
-    """投票记录表"""
+    """Vote record table"""
     __tablename__ = 'votes'
     
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -142,7 +142,7 @@ class Vote(Base):
 
 
 class User(Base):
-    """用户表"""
+    """User table"""
     __tablename__ = 'users'
     
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -156,7 +156,7 @@ class User(Base):
 
 
 class Admin(Base):
-    """管理员表"""
+    """Admin table"""
     __tablename__ = 'admins'
     
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -169,7 +169,7 @@ class Admin(Base):
 
 
 class School(Base):
-    """学区/学校数据表"""
+    """School/district data table"""
     __tablename__ = 'schools'
     
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -194,7 +194,7 @@ class School(Base):
         return f"<School(cds={self.cds_code}, district='{self.district}')>"
 
 
-# 数据库初始化
+# Database initialization
 def init_db(db_path='sqlite:///polling_v2.db'):
     engine = create_engine(db_path, echo=False)
     Base.metadata.create_all(engine)
@@ -207,7 +207,7 @@ def get_session(engine):
     return Session()
 
 
-# 查询函数
+# Query functions
 def get_polls_by_zipcode(db, zip_code):
     zipcode_obj = db.query(ZipCode).filter_by(zip_code=zip_code).first()
     
@@ -248,7 +248,7 @@ def get_polls_by_city(db, city, state=None):
 
 
 def get_polls_by_district(db, district_name):
-    """根据学区名获取投票（直接关联）"""
+    """Get polls by district name (direct association)"""
     districts = db.query(School).filter(
         School.district.ilike(f'%{district_name}%'),
         School.record_type == 'District'
@@ -277,7 +277,7 @@ def get_all_polls(db):
     return db.query(Poll).order_by(desc(Poll.created_at)).all()
 
 
-# 投票函数
+# Vote functions
 def add_vote_single_choice(db, poll_id, choice, user_id=0):
     vote = Vote(
         poll_id=poll_id,
@@ -396,7 +396,7 @@ def get_poll_results(db, poll_id):
     return results
 
 
-# 邮编查询
+# Zip code queries
 def get_zipcodes_by_city(db, city, state=None):
     query = db.query(ZipCode).filter(ZipCode.city.ilike(city))
     
@@ -435,9 +435,9 @@ def search_by_city_or_zip(db, query):
     return results
 
 
-# 学区查询
+# District queries
 def search_schools(db, query):
-    """搜索学区/学校"""
+    """Search districts/schools"""
     query = query.strip()
     
     if query.isdigit() and len(query) == 5:
@@ -453,7 +453,7 @@ def search_schools(db, query):
 
 
 def get_districts_by_city(db, city):
-    """根据城市获取学区"""
+    """Get districts by city"""
     return db.query(School).filter(
         School.city.ilike(city),
         School.record_type == 'District'
@@ -461,7 +461,7 @@ def get_districts_by_city(db, city):
 
 
 def get_districts_by_zipcode(db, zip_code):
-    """根据邮编获取学区"""
+    """Get districts by zip code"""
     return db.query(School).filter(
         School.zip_code == zip_code,
         School.record_type == 'District'
@@ -469,7 +469,7 @@ def get_districts_by_zipcode(db, zip_code):
 
 
 def get_zipcodes_by_district(db, district_name):
-    """根据学区名获取所有邮编"""
+    """Get all zip codes by district name"""
     schools = db.query(School).filter(
         School.district.ilike(f'%{district_name}%')
     ).all()
