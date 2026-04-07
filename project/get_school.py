@@ -48,7 +48,7 @@ excel_file = '../CDESchoolDirectoryExport.xlsx'
 
 try:
     df = pd.read_excel(excel_file)
-    
+    df.dropna(how='all', inplace=True)  # 删除全空行
 
     print(f"列名: {df.columns.tolist()}")
     
