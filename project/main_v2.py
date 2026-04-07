@@ -639,7 +639,7 @@ def admin_create_poll():
 @login_required
 def admin_poll_detail(poll_id):
     """View poll detail - redirect to admin results page"""
-    # 🔴 Directly redirect to admin_poll_results
+    # Directly redirect to admin_poll_results
     return redirect(url_for('admin_poll_results', poll_id=poll_id))
 
 
@@ -666,14 +666,14 @@ def admin_poll_results(poll_id):
     # Get recent vote records
     votes = db.query(Vote).filter_by(poll_id=poll_id).order_by(Vote.voted_at.desc()).limit(20).all()
     
-    # 🔴 Preload data
+    # Preload data
     zipcodes_list = [(zc.zip_code, zc.city, zc.state) for zc in poll.zipcodes]
     cities = poll.get_cities()
     states = poll.get_states()
     
     db.close()
     
-    # 🔴 Render Admin style results page
+    # Render Admin style results page
     return render_template(
         'admin/poll_results.html',
         poll=poll,
@@ -751,17 +751,17 @@ def admin_edit_poll(poll_id):
                     poll.set_rating_labels(labels)
             
             db.commit()
-            flash('✅ Poll updated successfully!', 'success')
+            flash('Poll updated successfully!', 'success')
             db.close()
             return redirect(url_for('admin_poll_detail', poll_id=poll_id))
         
         except Exception as e:
-            flash(f'❌ Error updating poll: {str(e)}', 'error')
+            flash(f'Error updating poll: {str(e)}', 'error')
             db.rollback()
             db.close()
             return redirect(url_for('admin_edit_poll', poll_id=poll_id))
     
-    # 🔴 GET request: preload all required data
+    # GET request: preload all required data
     zipcodes_list = [zc.zip_code for zc in poll.zipcodes]
     cities = poll.get_cities()
     states = poll.get_states()
