@@ -145,7 +145,7 @@
                 <strong>Poll ID:</strong> {{ poll.id }}
             </div>
             
-            <!-- 🔴 Using preloaded data -->
+            <!-- Using preloaded data -->
             <div class="meta-row">
                 <strong>Locations:</strong> 
                 {% if cities %}
@@ -156,21 +156,21 @@
                 {% endif %}
             </div>
             
-            <!-- 🔴 Show city list -->
+            <!-- Show city list -->
             {% if cities and cities|length > 0 %}
             <div class="meta-row">
                 <strong>Cities:</strong>
                 <div style="margin-top: 5px;">
                     {% for city in cities %}
                     <span class="zipcode-tag">
-                        📍 {{ city.city }}, {{ city.state }}
+                        {{ city.city }}, {{ city.state }}
                     </span>
                     {% endfor %}
                 </div>
             </div>
             {% endif %}
             
-            <!-- 🔴 Show zip code details -->
+            <!-- Show zip code details -->
             {% if zipcodes_list and zipcodes_list|length > 0 %}
             <div class="meta-row">
                 <strong>Zip Codes:</strong>
