@@ -1,4 +1,4 @@
-# import_schools_v2.py - 导入学区数据到纯学区数据库
+# import_schools_v2.py - Import district data to school district database
 
 import pandas as pd
 from models_school import init_db, get_session, School
@@ -7,22 +7,22 @@ print("\n" + "="*60)
 print("导入学区数据到纯学区数据库")
 print("="*60)
 
-# 初始化数据库
+# Initialize database
 engine = init_db('sqlite:///polling_v2.db')
 db = get_session(engine)
 
-# 清空旧数据
+# Clear old data
 print("\n清空旧学区数据...")
 db.query(School).delete()
 db.commit()
 
-# 读取 Excel 文件
+# Read Excel file
 excel_file = '../CDESchoolDirectoryExport.xlsx'
 print(f"\n从 {excel_file} 读取数据...")
 
 try:
     df = pd.read_excel(excel_file)
-    df.dropna(how='all', inplace=True)  # 删除全空行
+    df.dropna(how='all', inplace=True)  # Remove all-empty rows
     print(f"✅ 读取到 {len(df)} 行数据")
     
     count = 0
@@ -30,10 +30,10 @@ try:
     
     for idx, row in df.iterrows():
         try:
-            # 提取邮编（去掉后缀，如 94544-1136 -> 94544）
+            # Extract zip code (remove suffix, e.g. 94544-1136 -> 94544)
             zip_code = str(row['Street Zip']).split('-')[0] if pd.notna(row['Street Zip']) else None
             
-            # 处理 "No Data"
+            # Handle "No Data"
             school_name = row['School'] if row['School'] != 'No Data' else None
             
             school = School(
@@ -51,7 +51,7 @@ try:
             db.add(school)
             count += 1
             
-            # 每1000条提交一次
+            # Commit every 1000 records
             if count % 1000 == 0:
                 db.commit()
                 print(f"已导入 {count} 条...")
@@ -76,7 +76,7 @@ except Exception as e:
     traceback.print_exc()
     db.rollback()
 
-# 显示统计
+# Show statistics
 print("\n" + "="*60)
 print("数据统计：")
 print("="*60)
@@ -95,7 +95,7 @@ print(f"县 (Counties): {counties}")
 print(f"城市 (Cities): {cities}")
 print(f"邮编 (Zip Codes): {zips}")
 
-# 显示示例学区
+# Show sample districts
 print("\n示例学区（前10个）：")
 sample_districts = db.query(School).filter_by(record_type='District').limit(10).all()
 for s in sample_districts:
