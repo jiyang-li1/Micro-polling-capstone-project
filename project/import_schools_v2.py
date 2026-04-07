@@ -4,7 +4,7 @@ import pandas as pd
 from models_school import init_db, get_session, School
 
 print("\n" + "="*60)
-print("导入学区数据到纯学区数据库")
+print("Import district data to school district database")
 print("="*60)
 
 # Initialize database
@@ -12,13 +12,13 @@ engine = init_db('sqlite:///polling_v2.db')
 db = get_session(engine)
 
 # Clear old data
-print("\n清空旧学区数据...")
+print("\nClearing old district data...")
 db.query(School).delete()
 db.commit()
 
 # Read Excel file
 excel_file = '../CDESchoolDirectoryExport.xlsx'
-print(f"\n从 {excel_file} 读取数据...")
+print(f"\nReading data from {excel_file}...")
 
 try:
     df = pd.read_excel(excel_file)
@@ -54,12 +54,12 @@ try:
             # Commit every 1000 records
             if count % 1000 == 0:
                 db.commit()
-                print(f"已导入 {count} 条...")
-        
+                print(f"Imported {count} records...")
+
         except Exception as e:
             errors += 1
             if errors <= 5:
-                print(f"错误（行 {idx+2}）: {e}")
+                print(f"Error (row {idx+2}): {e}")
     
     db.commit()
     
@@ -69,7 +69,7 @@ try:
 
 except FileNotFoundError:
     print(f"\nError: file not found: {excel_file}")
-    print("请确保文件在项目根目录")
+    print("Please ensure the file is in the project root directory")
 except Exception as e:
     print(f"\nImport failed: {e}")
     import traceback
@@ -78,7 +78,7 @@ except Exception as e:
 
 # Show statistics
 print("\n" + "="*60)
-print("数据统计：")
+print("Data Statistics:")
 print("="*60)
 
 total = db.query(School).count()
@@ -88,15 +88,15 @@ counties = db.query(School.county).distinct().count()
 cities = db.query(School.city).distinct().count()
 zips = db.query(School.zip_code).distinct().count()
 
-print(f"总记录数: {total}")
-print(f"  - 学区 (Districts): {districts}")
-print(f"  - 学校 (Schools): {schools}")
-print(f"县 (Counties): {counties}")
-print(f"城市 (Cities): {cities}")
-print(f"邮编 (Zip Codes): {zips}")
+print(f"Total records: {total}")
+print(f"  - Districts: {districts}")
+print(f"  - Schools: {schools}")
+print(f"Counties: {counties}")
+print(f"Cities: {cities}")
+print(f"Zip Codes: {zips}")
 
 # Show sample districts
-print("\n示例学区（前10个）：")
+print("\nSample districts (first 10):")
 sample_districts = db.query(School).filter_by(record_type='District').limit(10).all()
 for s in sample_districts:
     print(f"  {s.district:50s} | {s.city:15s} | {s.county}")
