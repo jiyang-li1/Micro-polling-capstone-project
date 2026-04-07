@@ -1,5 +1,7 @@
 # app_v2.py - Flask 应用 V2（支持多种投票类型）
-
+import csv
+from io import StringIO
+from flask import make_response
 from flask import Flask, render_template, request, redirect, url_for, flash, session
 from model_v2 import (
     init_db, get_session, 
@@ -545,50 +547,26 @@ def admin_create_poll():
 
 
 
+# ============================================
+# 管理员：投票详情（重定向到结果页面）
+# ============================================
 
 @app.route('/admin/poll/<int:poll_id>')
 @login_required
 def admin_poll_detail(poll_id):
-    """查看投票详情"""
-    
-    db = get_db()
-    poll = get_poll_by_id(db, poll_id)
-    
-    if not poll:
-        flash('Poll not found', 'error')
-        db.close()
-        return redirect(url_for('admin_dashboard'))
-    
-    # 🔴 在关闭 session 之前获取所有需要的数据
-    data = get_poll_results(db, poll_id)
-    votes = db.query(Vote).filter_by(poll_id=poll_id).order_by(Vote.voted_at.desc()).limit(10).all()
-    
-    # 🔴 预加载 zipcodes 关系（强制加载）
-    _ = poll.zipcodes  # 访问一次，触发加载
-    zipcodes_list = [(zc.zip_code, zc.city, zc.state) for zc in poll.zipcodes]
-    
-    # 🔴 获取其他需要的数据
-    cities = poll.get_cities()
-    states = poll.get_states()
-    
-    db.close()
-    
-    # 🔴 将数据传递给模板
-    return render_template(
-        'admin/poll_detail_v2.html',
-        poll=poll,
-        results=data['results'],
-        total_votes=data['total_votes'],
-        votes=votes,
-        zipcodes_list=zipcodes_list,  # 🔴 传递预加载的数据
-        cities=cities,
-        states=states
-    )
+    """查看投票详情 - 重定向到管理员结果页面"""
+    # 🔴 直接重定向到 admin_poll_results
+    return redirect(url_for('admin_poll_results', poll_id=poll_id))
+
+
+# ============================================
+# 管理员：查看结果（Admin 风格）
+# ============================================
 
 @app.route('/admin/poll/<int:poll_id>/results')
 @login_required
 def admin_poll_results(poll_id):
-    """管理员查看投票结果（admin 风格）"""
+    """管理员查看投票结果（Admin 风格）"""
     
     db = get_db()
     poll = get_poll_by_id(db, poll_id)
@@ -604,13 +582,14 @@ def admin_poll_results(poll_id):
     # 获取最近的投票记录
     votes = db.query(Vote).filter_by(poll_id=poll_id).order_by(Vote.voted_at.desc()).limit(20).all()
     
-    # 预加载数据
+    # 🔴 预加载数据
     zipcodes_list = [(zc.zip_code, zc.city, zc.state) for zc in poll.zipcodes]
     cities = poll.get_cities()
     states = poll.get_states()
     
     db.close()
     
+    # 🔴 渲染 Admin 风格的结果页面
     return render_template(
         'admin/poll_results.html',
         poll=poll,
@@ -621,7 +600,6 @@ def admin_poll_results(poll_id):
         cities=cities,
         states=states
     )
-
 
 # app_v2.py - 添加编辑投票路由
 
@@ -777,5 +755,120 @@ def server_error(e):
 
 
 
+
+
+# ============================================
+# 管理员：导出投票数据为 CSV
+# ============================================
+
+@app.route('/admin/poll/<int:poll_id>/export')
+@login_required
+def export_poll_csv(poll_id):
+    """导出投票数据为 CSV"""
+    
+    db = get_db()
+    poll = get_poll_by_id(db, poll_id)
+    
+    if not poll:
+        flash('Poll not found', 'error')
+        db.close()
+        return redirect(url_for('admin_dashboard'))
+    
+    # 获取所有投票记录
+    votes = db.query(Vote).filter_by(poll_id=poll_id).order_by(Vote.voted_at).all()
+    
+    # 预加载邮编信息
+    zipcodes_list = [(zc.zip_code, zc.city, zc.state) for zc in poll.zipcodes]
+    
+    # 创建 CSV
+    si = StringIO()
+    writer = csv.writer(si)
+    
+    # 写入标题信息
+    writer.writerow(['Poll Export'])
+    writer.writerow(['Poll ID', poll.id])
+    writer.writerow(['Title', poll.title])
+    writer.writerow(['Question', poll.question])
+    writer.writerow(['Type', poll.poll_type])
+    writer.writerow(['Created', poll.created_at.strftime('%Y-%m-%d %H:%M:%S')])
+    writer.writerow(['Total Votes', len(votes)])
+    writer.writerow([])
+    
+    # 写入投票数据
+    if poll.poll_type == 'single_choice':
+        writer.writerow(['Vote ID', 'Choice', 'Voted At'])
+        options = poll.get_options()
+        for vote in votes:
+            writer.writerow([
+                vote.id,
+                options[vote.choice],
+                vote.voted_at.strftime('%Y-%m-%d %H:%M:%S')
+            ])
+    
+    elif poll.poll_type == 'multiple_choice':
+        writer.writerow(['Vote ID', 'Choices', 'Voted At'])
+        options = poll.get_options()
+        for vote in votes:
+            choices = vote.get_choices()
+            choice_names = [options[i] for i in choices]
+            writer.writerow([
+                vote.id,
+                ', '.join(choice_names),
+                vote.voted_at.strftime('%Y-%m-%d %H:%M:%S')
+            ])
+    
+    elif poll.poll_type == 'rating_scale':
+        writer.writerow(['Vote ID', 'Rating', 'Voted At'])
+        for vote in votes:
+            writer.writerow([
+                vote.id,
+                vote.rating,
+                vote.voted_at.strftime('%Y-%m-%d %H:%M:%S')
+            ])
+    
+    elif poll.poll_type == 'ranked_choice':
+        writer.writerow(['Vote ID', 'Ranking', 'Voted At'])
+        options = poll.get_options()
+        for vote in votes:
+            ranking = vote.get_ranking()
+            ranked_names = [options[i] for i in ranking]
+            writer.writerow([
+                vote.id,
+                ' > '.join(ranked_names),
+                vote.voted_at.strftime('%Y-%m-%d %H:%M:%S')
+            ])
+    
+    # 添加统计摘要
+    writer.writerow([])
+    writer.writerow(['Summary'])
+    
+    if poll.poll_type in ['single_choice', 'multiple_choice']:
+        writer.writerow(['Option', 'Vote Count', 'Percentage'])
+        data = get_poll_results(db, poll_id)
+        for option, stats in data['results'].items():
+            writer.writerow([option, stats['count'], f"{stats['percentage']}%"])
+    
+    elif poll.poll_type == 'rating_scale':
+        data = get_poll_results(db, poll_id)
+        writer.writerow(['Average Rating', data['results']['average']])
+        writer.writerow([])
+        writer.writerow(['Rating', 'Count'])
+        for rating, count in data['results']['ratings'].items():
+            writer.writerow([rating, count])
+    
+    db.close()
+    
+    # 创建响应
+    output = make_response(si.getvalue())
+    output.headers["Content-Disposition"] = f"attachment; filename=poll_{poll_id}_export.csv"
+    output.headers["Content-type"] = "text/csv"
+    
+    return output
+
+
+
+
 if __name__ == '__main__':    
     app.run(debug=True, host='0.0.0.0', port=5000)
+    
+    
