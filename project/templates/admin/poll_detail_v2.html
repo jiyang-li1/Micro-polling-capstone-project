@@ -145,7 +145,7 @@
                 <strong>Poll ID:</strong> {{ poll.id }}
             </div>
             
-            <!-- 🔴 使用预加载的数据 -->
+            <!-- 🔴 Using preloaded data -->
             <div class="meta-row">
                 <strong>Locations:</strong> 
                 {% if cities %}
@@ -156,7 +156,7 @@
                 {% endif %}
             </div>
             
-            <!-- 🔴 显示城市列表 -->
+            <!-- 🔴 Show city list -->
             {% if cities and cities|length > 0 %}
             <div class="meta-row">
                 <strong>Cities:</strong>
@@ -170,7 +170,7 @@
             </div>
             {% endif %}
             
-            <!-- 🔴 显示邮编详情 -->
+            <!-- 🔴 Show zip code details -->
             {% if zipcodes_list and zipcodes_list|length > 0 %}
             <div class="meta-row">
                 <strong>Zip Codes:</strong>
