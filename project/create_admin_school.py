@@ -7,14 +7,14 @@ def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
 
 print("\n" + "="*60)
-print("创建管理员账户（学区投票系统）")
+print("Create Admin Account (School District Voting System)")
 print("="*60 + "\n")
 
 engine = init_db('sqlite:///polling_school.db')
 db = get_session(engine)
 
-username = input("输入管理员用户名: ").strip()
-password = input("输入管理员密码: ").strip()
+username = input("Enter admin username: ").strip()
+password = input("Enter admin password: ").strip()
 
 if not username or not password:
     print("\nError: username and password cannot be empty.")
@@ -37,9 +37,9 @@ db.add(admin)
 db.commit()
 
 print(f"\nAdmin '{username}' created successfully.")
-print("\n登录信息：")
-print(f"  用户名: {username}")
-print(f"  密码: {password}")
+print("\nLogin Info:")
+print(f"  Username: {username}")
+print(f"  Password: {password}")
 print("\n" + "="*60 + "\n")
 
 db.close()
