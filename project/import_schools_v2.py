@@ -23,7 +23,7 @@ print(f"\n从 {excel_file} 读取数据...")
 try:
     df = pd.read_excel(excel_file)
     df.dropna(how='all', inplace=True)  # Remove all-empty rows
-    print(f"✅ 读取到 {len(df)} 行数据")
+    print(f"Read {len(df)} rows of data")
     
     count = 0
     errors = 0
@@ -63,15 +63,15 @@ try:
     
     db.commit()
     
-    print(f"\n✅ 成功导入 {count} 条学区/学校数据！")
+    print(f"\nSuccessfully imported {count} school/district records.")
     if errors > 0:
-        print(f"⚠️  跳过了 {errors} 条错误数据")
+        print(f"Warning: skipped {errors} error records")
 
 except FileNotFoundError:
-    print(f"\n❌ 错误：找不到文件 {excel_file}")
+    print(f"\nError: file not found: {excel_file}")
     print("请确保文件在项目根目录")
 except Exception as e:
-    print(f"\n❌ 导入失败：{e}")
+    print(f"\nImport failed: {e}")
     import traceback
     traceback.print_exc()
     db.rollback()
@@ -104,4 +104,4 @@ for s in sample_districts:
 print("="*60)
 
 db.close()
-print("\n✅ 导入完成！\n")
+print("\nImport complete.\n")
