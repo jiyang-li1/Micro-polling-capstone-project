@@ -381,6 +381,211 @@
             background-color: #f8d7da;
             color: #721c24;
         }
+        /* ============================================
+   响应式设计 - 手机端适配
+   ============================================ */
+
+@media (max-width: 768px) {
+    /* 容器调整 */
+    body {
+        padding: 10px;
+    }
+    
+    .container {
+        padding: 20px;
+        margin: 20px auto;
+    }
+    
+    /* 标题字体缩小 */
+    h1 {
+        font-size: 24px !important;
+    }
+    
+    h2 {
+        font-size: 20px !important;
+    }
+    
+    h4 {
+        font-size: 16px !important;
+    }
+    
+    /* 按钮适配 */
+    .btn {
+        padding: 12px 16px;
+        font-size: 14px;
+        width: 100%;
+        margin: 5px 0;
+        display: block;
+    }
+    
+    .option-button {
+        font-size: 16px;
+        padding: 15px;
+    }
+    
+    /* Header 布局调整 */
+    .header {
+        flex-direction: column;
+        align-items: stretch !important;
+    }
+    
+    .header-left,
+    .header-right {
+        text-align: left !important;
+        margin-bottom: 15px;
+    }
+    
+    /* Meta Grid 调整 */
+    .meta-grid {
+        grid-template-columns: 1fr !important;
+    }
+    
+    /* Stats Grid 调整 */
+    .stats-grid {
+        grid-template-columns: 1fr !important;
+    }
+    
+    /* Table 滚动 */
+    table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+    
+    /* 隐藏不必要的列 */
+    th:nth-child(n+4),
+    td:nth-child(n+4) {
+        display: none;
+    }
+    
+    /* Poll Type Selector */
+    .poll-type-selector {
+        grid-template-columns: 1fr !important;
+    }
+    
+    /* Actions 按钮 */
+    .actions {
+        flex-direction: column;
+    }
+    
+    .actions button,
+    .actions a,
+    .actions form {
+        width: 100%;
+        margin: 3px 0 !important;
+    }
+    
+    /* 投票选项 */
+    .checkbox-option label {
+        font-size: 16px;
+    }
+    
+    /* 星星评分 */
+    .star {
+        font-size: 36px !important;
+    }
+    
+    /* 排序列表 */
+    .ranked-option {
+        padding: 12px;
+    }
+    
+    .rank-number {
+        width: 35px;
+        height: 35px;
+        font-size: 16px;
+    }
+    
+    .rank-label {
+        font-size: 16px;
+    }
+    
+    /* 结果条 */
+    .result-bar {
+        font-size: 14px;
+    }
+    
+    /* 评分行 */
+    .rating-row {
+        flex-wrap: wrap;
+    }
+    
+    .rating-label {
+        min-width: 80px;
+        font-size: 14px;
+    }
+    
+    /* 输入框 */
+    input[type="text"],
+    input[type="number"],
+    textarea,
+    select {
+        font-size: 16px; /* 防止 iOS 自动缩放 */
+    }
+    
+    /* Geo Tabs */
+    .geo-tabs {
+        flex-direction: column;
+    }
+    
+    .geo-tab {
+        width: 100%;
+        margin: 3px 0;
+    }
+    
+    /* Zipcode 输入区域 */
+    .zipcode-input-area {
+        flex-direction: column;
+    }
+    
+    .zipcode-input-area input {
+        margin-bottom: 10px;
+    }
+    
+    /* 选择的项目标签 */
+    .selected-items {
+        font-size: 14px;
+    }
+    
+    /* 统计卡片 */
+    .stat-number {
+        font-size: 36px !important;
+    }
+    
+    /* 排序项目 */
+    .ranked-item {
+        flex-wrap: wrap;
+    }
+    
+    .ranked-position {
+        min-width: 60px;
+    }
+    
+    .position-number {
+        font-size: 24px;
+    }
+}
+
+/* 超小屏幕（<480px） */
+@media (max-width: 480px) {
+    h1 {
+        font-size: 20px !important;
+    }
+    
+    .stat-number {
+        font-size: 28px !important;
+    }
+    
+    .rating-average {
+        font-size: 48px !important;
+    }
+    
+    .poll-type-badge,
+    .status-badge {
+        font-size: 12px;
+        padding: 4px 8px;
+    }
+}
     </style>
 </head>
 <body>
@@ -398,14 +603,14 @@
             <div class="header-left">
                 <div style="margin-bottom: 10px;">
                     <span class="poll-type-badge">
-                        {% if poll.poll_type == 'single_choice' %}🔘 Single Choice
-                        {% elif poll.poll_type == 'multiple_choice' %}☑️ Multiple Choice
-                        {% elif poll.poll_type == 'rating_scale' %}⭐ Rating Scale
-                        {% elif poll.poll_type == 'ranked_choice' %}🔢 Ranked Choice
+                        {% if poll.poll_type == 'single_choice' %} Single Choice
+                        {% elif poll.poll_type == 'multiple_choice' %} Multiple Choice
+                        {% elif poll.poll_type == 'rating_scale' %} Rating Scale
+                        {% elif poll.poll_type == 'ranked_choice' %} Ranked Choice
                         {% endif %}
                     </span>
                     <span class="status-badge {% if poll.is_active == 1 %}status-active{% else %}status-inactive{% endif %}">
-                        {% if poll.is_active == 1 %}✅ Active{% else %}❌ Inactive{% endif %}
+                        {% if poll.is_active == 1 %} Active{% else %} Inactive{% endif %}
                     </span>
                 </div>
                 <h1>{{ poll.title }}</h1>
@@ -413,10 +618,15 @@
             </div>
             <div class="header-right">
                 <a href="{{ url_for('poll_page', poll_id=poll.id) }}" class="btn btn-primary" target="_blank">
-                    🗳️ View Poll
+                     View Poll
                 </a>
+                    <!-- 🔴 添加导出按钮 -->
+                <a href="{{ url_for('export_poll_csv', poll_id=poll.id) }}" class="btn btn-success">
+                    Export
+                </a>
+
                 <a href="{{ url_for('admin_edit_poll', poll_id=poll.id) }}" class="btn btn-success">
-                    ✏️ Edit
+                     Edit
                 </a>
                 <br>
                 <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary">
@@ -474,7 +684,7 @@
         <!-- Results Section -->
         <div class="section">
             <div class="section-header">
-                <h2>📊 Voting Results</h2>
+                <h2> Voting Results</h2>
                 <a href="{{ url_for('poll_results', poll_id=poll.id) }}" class="btn btn-primary" target="_blank">
                     Public Results Page →
                 </a>
@@ -545,7 +755,7 @@
                 {% endif %}
             {% else %}
                 <div class="no-data">
-                    📭 No votes yet
+                    No votes yet
                 </div>
             {% endif %}
         </div>
@@ -573,7 +783,7 @@
                             {% elif poll.poll_type == 'multiple_choice' %}
                                 {{ vote.get_choices()|length }} option{% if vote.get_choices()|length != 1 %}s{% endif %} selected
                             {% elif poll.poll_type == 'rating_scale' %}
-                                ⭐ {{ vote.rating }} / {{ poll.rating_max }}
+                                 {{ vote.rating }} / {{ poll.rating_max }}
                             {% elif poll.poll_type == 'ranked_choice' %}
                                 Ranking submitted
                             {% endif %}
