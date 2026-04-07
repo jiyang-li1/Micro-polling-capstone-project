@@ -671,13 +671,9 @@
                 <div class="stat-number">{{ total_votes }}</div>
                 <div class="stat-label">Total Votes</div>
             </div>
-            <div class="stat-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+            <div class="stat-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
                 <div class="stat-number">{{ poll.get_options()|length if poll.poll_type != 'rating_scale' else poll.rating_max }}</div>
                 <div class="stat-label">{% if poll.poll_type == 'rating_scale' %}Max Rating{% else %}Options{% endif %}</div>
-            </div>
-            <div class="stat-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
-                <div class="stat-number">{{ zipcodes_list|length }}</div>
-                <div class="stat-label">Zip Codes</div>
             </div>
         </div>
         
@@ -686,7 +682,7 @@
             <div class="section-header">
                 <h2> Voting Results</h2>
                 <a href="{{ url_for('poll_results', poll_id=poll.id) }}" class="btn btn-primary" target="_blank">
-                    Public Results Page →
+                    Results Page →
                 </a>
             </div>
             
@@ -763,7 +759,7 @@
         <!-- Recent Votes -->
         {% if votes and votes|length > 0 %}
         <div class="section">
-            <h2>📝 Recent Votes (Last 20)</h2>
+            <h2>Recent Votes (Last 20)</h2>
             
             <table>
                 <thead>
