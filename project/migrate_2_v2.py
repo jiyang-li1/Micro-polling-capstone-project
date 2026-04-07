@@ -1,4 +1,4 @@
-# migrate_add_poll_districts.py - 添加 poll_districts 表
+# migrate_add_poll_districts.py - Add poll_districts table
 
 from model_v2 import init_db, Base, get_session, poll_districts
 from sqlalchemy import inspect
@@ -7,10 +7,10 @@ print("\n" + "="*60)
 print("添加 poll_districts 关联表")
 print("="*60)
 
-# 连接数据库
+# Connect to database
 engine = init_db('sqlite:///polling_v2.db')
 
-# 检查表是否已存在
+# Check if table already exists
 inspector = inspect(engine)
 existing_tables = inspector.get_table_names()
 
@@ -20,16 +20,16 @@ if 'poll_districts' in existing_tables:
     print("\npoll_districts 表已存在，无需创建")
 else:
     print("\n创建 poll_districts 表...")
-    # 只创建这个新表
+    # Only create this new table
     Base.metadata.tables['poll_districts'].create(engine)
     print("创建成功！")
 
-# 验证
+# Verify
 inspector = inspect(engine)
 if 'poll_districts' in inspector.get_table_names():
     print("\n验证：poll_districts 表已创建")
     
-    # 显示表结构
+    # Show table structure
     columns = inspector.get_columns('poll_districts')
     print("\n表结构:")
     for col in columns:
