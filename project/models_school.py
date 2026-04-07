@@ -1,4 +1,4 @@
-# models_school.py - 学区投票系统数据模型（纯学区版）
+# models_school.py - School district voting system data model (pure district version)
 
 from sqlalchemy import create_engine, Column, Integer, String, Text, DateTime, Table, ForeignKey, Index
 from sqlalchemy.ext.declarative import declarative_base
@@ -9,7 +9,7 @@ import json
 Base = declarative_base()
 
 # ============================================
-# 关联表：投票 ↔ 学区
+# Association table: Poll ↔ School
 # ============================================
 
 poll_schools = Table('poll_schools', Base.metadata,
@@ -18,11 +18,11 @@ poll_schools = Table('poll_schools', Base.metadata,
 )
 
 # ============================================
-# 学区/学校表
+# School/District table
 # ============================================
 
 class School(Base):
-    """学区/学校数据表"""
+    """School/district data table"""
     __tablename__ = 'schools'
     
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -36,7 +36,7 @@ class School(Base):
     city = Column(String(100), index=True)
     zip_code = Column(String(10), index=True)
     
-    # 关系
+    # Relationship
     polls = relationship('Poll', secondary=poll_schools, back_populates='schools')
     
     __table_args__ = (
@@ -49,11 +49,11 @@ class School(Base):
 
 
 # ============================================
-# 投票表
+# Poll table
 # ============================================
 
 class Poll(Base):
-    """投票表"""
+    """Poll table"""
     __tablename__ = 'polls'
     
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -61,49 +61,49 @@ class Poll(Base):
     question = Column(Text, nullable=False)
     description = Column(Text)
     
-    # 投票类型
+    # Poll type
     poll_type = Column(String(50), nullable=False, default='single_choice')
     # single_choice, multiple_choice, rating_scale, ranked_choice
     
-    # 选项（JSON 存储）
+    # Options (stored as JSON)
     options = Column(Text)  # JSON array
     
-    # 多选配置
+    # Multiple choice configuration
     min_choices = Column(Integer, default=1)
-    max_choices = Column(Integer)  # NULL = 无限制
+    max_choices = Column(Integer)  # NULL = unlimited
     
-    # 量表配置
+    # Rating scale configuration
     rating_min = Column(Integer, default=1)
     rating_max = Column(Integer, default=5)
     rating_labels = Column(Text)  # JSON object: {1: "Very Bad", 5: "Very Good"}
     
-    # 时间戳
+    # Timestamps
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     is_active = Column(Integer, default=1)  # 1=active, 0=inactive
     
-    # 关系
+    # Relationships
     schools = relationship('School', secondary=poll_schools, back_populates='polls', lazy='joined')
     votes = relationship('Vote', back_populates='poll', cascade='all, delete-orphan')
     
     def get_options(self):
-        """获取选项列表"""
+        """Get options list"""
         if self.options:
             return json.loads(self.options)
         return []
     
     def set_options(self, options_list):
-        """设置选项列表"""
+        """Set options list"""
         self.options = json.dumps(options_list)
     
     def get_rating_labels(self):
-        """获取量表标签"""
+        """Get rating scale labels"""
         if self.rating_labels:
             return json.loads(self.rating_labels)
         return {}
     
     def set_rating_labels(self, labels_dict):
-        """设置量表标签"""
+        """Set rating scale labels"""
         self.rating_labels = json.dumps(labels_dict)
     
     def __repr__(self):
@@ -111,46 +111,46 @@ class Poll(Base):
 
 
 # ============================================
-# 投票记录表
+# Vote record table
 # ============================================
 
 class Vote(Base):
-    """投票记录表"""
+    """Vote record table"""
     __tablename__ = 'votes'
     
     id = Column(Integer, primary_key=True, autoincrement=True)
     poll_id = Column(Integer, ForeignKey('polls.id', ondelete='CASCADE'), nullable=False, index=True)
-    user_id = Column(Integer, default=0)  # 0 = 匿名
+    user_id = Column(Integer, default=0)  # 0 = anonymous
     
-    # 不同投票类型的答案存储
-    choice = Column(Integer)  # 单选
-    choices = Column(Text)  # 多选（JSON array）
-    rating = Column(Integer)  # 量表
-    ranking = Column(Text)  # 排序（JSON array）
+    # Answer storage for different poll types
+    choice = Column(Integer)  # single choice
+    choices = Column(Text)  # multiple choice (JSON array)
+    rating = Column(Integer)  # rating scale
+    ranking = Column(Text)  # ranked choice (JSON array)
     
     voted_at = Column(DateTime, default=datetime.utcnow, index=True)
     
-    # 关系
+    # Relationship
     poll = relationship('Poll', back_populates='votes')
     
     def get_choices(self):
-        """获取多选答案"""
+        """Get multiple choice answers"""
         if self.choices:
             return json.loads(self.choices)
         return []
     
     def set_choices(self, choices_list):
-        """设置多选答案"""
+        """Set multiple choice answers"""
         self.choices = json.dumps(choices_list)
     
     def get_ranking(self):
-        """获取排序答案"""
+        """Get ranked choice answers"""
         if self.ranking:
             return json.loads(self.ranking)
         return []
     
     def set_ranking(self, ranking_list):
-        """设置排序答案"""
+        """Set ranked choice answers"""
         self.ranking = json.dumps(ranking_list)
     
     def __repr__(self):
@@ -158,11 +158,11 @@ class Vote(Base):
 
 
 # ============================================
-# 管理员表
+# Admin table
 # ============================================
 
 class Admin(Base):
-    """管理员表"""
+    """Admin table"""
     __tablename__ = 'admins'
     
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -175,11 +175,11 @@ class Admin(Base):
 
 
 # ============================================
-# 数据库初始化
+# Database initialization
 # ============================================
 
 def init_db(db_url='sqlite:///polling_school.db'):
-    """初始化数据库"""
+    """Initialize database"""
     engine = create_engine(db_url, echo=False)
     Base.metadata.create_all(engine)
     print(f"Database created at: {db_url}")
@@ -187,27 +187,27 @@ def init_db(db_url='sqlite:///polling_school.db'):
 
 
 def get_session(engine):
-    """获取数据库会话"""
+    """Get database session"""
     Session = sessionmaker(bind=engine)
     return Session()
 
 
 # ============================================
-# 查询函数
+# Query functions
 # ============================================
 
 def search_schools(db, query):
     """
-    搜索学区/学校
-    支持：学区名、城市名、邮编、县名
+    Search districts/schools
+    Supports: district name, city name, zip code, county name
     """
     query = query.strip()
     
-    # 如果是5位数字，当作邮编
+    # If it's a 5-digit number, treat as zip code
     if query.isdigit() and len(query) == 5:
         return db.query(School).filter_by(zip_code=query).all()
     
-    # 否则搜索学区名、城市名、县名
+    # Otherwise search by district name, city name, county name
     results = db.query(School).filter(
         (School.district.ilike(f'%{query}%')) |
         (School.city.ilike(f'%{query}%')) |
@@ -218,7 +218,7 @@ def search_schools(db, query):
 
 
 def get_districts(db):
-    """获取所有学区（去重）"""
+    """Get all districts (deduplicated)"""
     return db.query(
         School.district,
         School.county
@@ -228,14 +228,14 @@ def get_districts(db):
 
 
 def get_schools_by_district(db, district_name):
-    """根据学区名获取所有学校/记录"""
+    """Get all schools/records by district name"""
     return db.query(School).filter(
         School.district.ilike(f'%{district_name}%')
     ).all()
 
 
 def get_zipcodes_by_district(db, district_name):
-    """根据学区名获取所有邮编"""
+    """Get all zip codes by district name"""
     schools = db.query(School).filter(
         School.district.ilike(f'%{district_name}%')
     ).all()
@@ -245,7 +245,7 @@ def get_zipcodes_by_district(db, district_name):
 
 
 def get_cities_by_district(db, district_name):
-    """根据学区名获取所有城市"""
+    """Get all cities by district name"""
     schools = db.query(School).filter(
         School.district.ilike(f'%{district_name}%')
     ).all()
@@ -255,12 +255,12 @@ def get_cities_by_district(db, district_name):
 
 
 def get_poll_by_id(db, poll_id):
-    """根据 ID 获取投票（预加载学区）"""
+    """Get poll by ID (with preloaded schools)"""
     return db.query(Poll).filter_by(id=poll_id).first()
 
 
 def get_polls_by_school_id(db, school_id):
-    """根据学校 ID 获取投票"""
+    """Get polls by school ID"""
     school = db.query(School).filter_by(id=school_id).first()
     if not school:
         return []
@@ -274,7 +274,7 @@ def get_polls_by_school_id(db, school_id):
 
 
 def get_polls_by_district(db, district_name):
-    """根据学区名获取投票"""
+    """Get polls by district name"""
     schools = db.query(School).filter(
         School.district.ilike(f'%{district_name}%')
     ).all()
@@ -293,7 +293,7 @@ def get_polls_by_district(db, district_name):
 
 
 def get_polls_by_zipcode(db, zip_code):
-    """根据邮编获取投票"""
+    """Get polls by zip code"""
     schools = db.query(School).filter_by(zip_code=zip_code).all()
     
     if not schools:
@@ -310,7 +310,7 @@ def get_polls_by_zipcode(db, zip_code):
 
 
 def get_polls_by_city(db, city):
-    """根据城市获取投票"""
+    """Get polls by city"""
     schools = db.query(School).filter(
         School.city.ilike(city)
     ).all()
@@ -329,7 +329,7 @@ def get_polls_by_city(db, city):
 
 
 def add_vote_single_choice(db, poll_id, choice, user_id=0):
-    """添加单选投票"""
+    """Add single choice vote"""
     vote = Vote(
         poll_id=poll_id,
         user_id=user_id,
@@ -341,7 +341,7 @@ def add_vote_single_choice(db, poll_id, choice, user_id=0):
 
 
 def add_vote_multiple_choice(db, poll_id, choices, user_id=0):
-    """添加多选投票"""
+    """Add multiple choice vote"""
     vote = Vote(
         poll_id=poll_id,
         user_id=user_id
@@ -353,7 +353,7 @@ def add_vote_multiple_choice(db, poll_id, choices, user_id=0):
 
 
 def add_vote_rating(db, poll_id, rating, user_id=0):
-    """添加量表投票"""
+    """Add rating scale vote"""
     vote = Vote(
         poll_id=poll_id,
         user_id=user_id,
@@ -365,7 +365,7 @@ def add_vote_rating(db, poll_id, rating, user_id=0):
 
 
 def add_vote_ranked(db, poll_id, ranking, user_id=0):
-    """添加排序投票"""
+    """Add ranked choice vote"""
     vote = Vote(
         poll_id=poll_id,
         user_id=user_id
@@ -377,7 +377,7 @@ def add_vote_ranked(db, poll_id, ranking, user_id=0):
 
 
 def get_poll_results(db, poll_id):
-    """获取投票结果（支持所有类型）"""
+    """Get poll results (supports all types)"""
     poll = get_poll_by_id(db, poll_id)
     if not poll:
         return None
@@ -469,5 +469,5 @@ def get_poll_results(db, poll_id):
 
 
 def get_all_polls(db):
-    """获取所有投票"""
+    """Get all polls"""
     return db.query(Poll).order_by(Poll.created_at.desc()).all()
