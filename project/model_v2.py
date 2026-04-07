@@ -427,3 +427,80 @@ def search_by_city_or_zip(db, query):
         ).all()
     
     return results
+
+class School(Base):
+    """学区/学校数据表"""
+    __tablename__ = 'schools'
+    
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    cds_code = Column(String(20), unique=True, nullable=False, index=True)
+    record_type = Column(String(20), nullable=False)  # District or School
+    county = Column(String(100), nullable=False, index=True)
+    district = Column(String(200), nullable=False, index=True)
+    school = Column(String(200))
+    status = Column(String(50))
+    entity_type = Column(String(100))
+    city = Column(String(100), index=True)
+    zip_code = Column(String(10), index=True)
+    
+    __table_args__ = (
+        Index('idx_district_city', 'district', 'city'),
+        Index('idx_county_district', 'county', 'district'),
+    )
+    
+    def __repr__(self):
+        return f"<School(cds={self.cds_code}, district='{self.district}')>"
+
+
+# 学区查询函数
+
+def search_schools(db, query):
+    """
+    搜索学区/学校
+    
+    支持：
+    - 学区名称
+    - 城市名称
+    - 邮编
+    """
+    query = query.strip()
+    
+    # 如果是5位数字，当作邮编
+    if query.isdigit() and len(query) == 5:
+        return db.query(School).filter_by(zip_code=query).all()
+    
+    # 否则搜索学区名或城市名
+    results = db.query(School).filter(
+        (School.district.ilike(f'%{query}%')) |
+        (School.city.ilike(f'%{query}%')) |
+        (School.county.ilike(f'%{query}%'))
+    ).limit(20).all()
+    
+    return results
+
+
+def get_districts_by_city(db, city):
+    """根据城市获取学区"""
+    return db.query(School).filter(
+        School.city.ilike(city),
+        School.record_type == 'District'
+    ).distinct().all()
+
+
+def get_districts_by_zipcode(db, zip_code):
+    """根据邮编获取学区"""
+    return db.query(School).filter(
+        School.zip_code == zip_code,
+        School.record_type == 'District'
+    ).all()
+
+
+def get_zipcodes_by_district(db, district_name):
+    """根据学区名获取所有邮编"""
+    schools = db.query(School).filter(
+        School.district.ilike(f'%{district_name}%')
+    ).all()
+    
+    # 返回唯一的邮编列表
+    zipcodes = list(set([s.zip_code for s in schools if s.zip_code]))
+    return zipcodes
