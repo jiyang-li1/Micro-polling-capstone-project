@@ -20,8 +20,11 @@ from model_v2 import (
     Vote,
     Admin,
     ZipCode,
-    poll_zipcodes
+    poll_zipcodes,
+    poll_districts
 )
+
+from model_v2 import School, search_schools, get_zipcodes_by_district
 from sqlalchemy import func
 import os
 import hashlib
@@ -60,39 +63,61 @@ def login_required(f):
 
 
 
-
 @app.route('/', methods=['GET', 'POST'])
 def index():
-
+    """首页：输入邮编、城市名或学区名查询投票"""
     
     if request.method == 'POST':
         query = request.form.get('query', '').strip()
         
         if not query:
-            flash('Please enter a zip code or city name', 'error')
+            flash('Please enter a zip code, city, or school district name', 'error')
             return redirect(url_for('index'))
         
         db = get_db()
+        polls = []
         
-
+        # 策略1：如果是5位数字，当作邮编
         if query.isdigit() and len(query) == 5:
+            print(f"Searching by zipcode: {query}")
             polls = get_polls_by_zipcode(db, query)
-            db.close()
-            
-            if not polls:
-                flash(f'No polls found for zip code {query}', 'error')
-                return redirect(url_for('index'))
-            
-            if len(polls) == 1:
-                return redirect(url_for('poll_page', poll_id=polls[0].id))
-            
-            return render_template('select_poll.html', 
-                                 query=query, 
-                                 polls=polls)
+            if polls:
+                print(f"Found {len(polls)} polls by zipcode")
         
-
-        else:
-
+        # 策略2：尝试按学区名搜索（直接关联）
+        if not polls:
+            print(f"Searching by district: {query}")
+            
+            # 查找匹配的学区
+            districts = db.query(School).filter(
+                School.district.ilike(f'%{query}%'),
+                School.record_type == 'District'
+            ).all()
+            
+            print(f"Found {len(districts)} districts")
+            
+            if districts:
+                # 新逻辑：查找直接关联这个学区的投票
+                district_ids = [d.id for d in districts]
+                
+                poll_ids = db.query(poll_districts.c.poll_id).filter(
+                    poll_districts.c.district_id.in_(district_ids)
+                ).distinct().all()
+                
+                poll_id_list = [p[0] for p in poll_ids]
+                print(f"Found {len(poll_id_list)} polls directly linked to districts")
+                
+                if poll_id_list:
+                    polls = db.query(Poll).filter(
+                        Poll.id.in_(poll_id_list),
+                        Poll.is_active == 1
+                    ).all()
+                    print(f"Found {len(polls)} active polls")
+        
+        # 策略3：尝试按城市搜索
+        if not polls:
+            print(f"Searching by city: {query}")
+            
             if ',' in query:
                 parts = query.split(',')
                 city = parts[0].strip()
@@ -102,20 +127,23 @@ def index():
                 state = None
             
             polls = get_polls_by_city(db, city, state)
-            db.close()
-            
-            if not polls:
-                flash(f'No polls found for {query}', 'error')
-                return redirect(url_for('index'))
-            
-            if len(polls) == 1:
-                return redirect(url_for('poll_page', poll_id=polls[0].id))
-            
-            return render_template('select_poll.html', 
-                                 query=query, 
-                                 polls=polls)
+            print(f"Found {len(polls)} polls by city")
+        
+        db.close()
+        
+        if not polls:
+            flash(f'No polls found for "{query}"', 'error')
+            return redirect(url_for('index'))
+        
+        if len(polls) == 1:
+            return redirect(url_for('poll_page', poll_id=polls[0].id))
+        
+        return render_template('select_poll.html', 
+                             query=query, 
+                             polls=polls)
     
     return render_template('index.html')
+
 
 
 
@@ -415,10 +443,12 @@ def admin_dashboard():
 
 
 
+# app_v2.py - 修改创建投票逻辑
+
 @app.route('/admin/poll/create', methods=['GET', 'POST'])
 @login_required
 def admin_create_poll():
-
+    """创建新投票"""
     
     if request.method == 'POST':
         import json
@@ -426,7 +456,7 @@ def admin_create_poll():
         db = get_db()
         
         try:
-
+            # 基本信息
             title = request.form.get('title', '').strip()
             question = request.form.get('question', '').strip()
             description = request.form.get('description', '').strip()
@@ -436,7 +466,7 @@ def admin_create_poll():
                 flash('Title and question are required', 'error')
                 return redirect(url_for('admin_create_poll'))
             
-
+            # 创建投票对象
             poll = Poll(
                 title=title,
                 question=question,
@@ -444,7 +474,7 @@ def admin_create_poll():
                 poll_type=poll_type
             )
             
-
+            # 根据类型设置选项和配置
             if poll_type in ['single_choice', 'multiple_choice', 'ranked_choice']:
                 options = []
                 for key in request.form:
@@ -460,7 +490,6 @@ def admin_create_poll():
                 
                 poll.set_options(options)
                 
-
                 if poll_type == 'multiple_choice':
                     poll.min_choices = int(request.form.get('min_choices', 1))
                     max_choices = request.form.get('max_choices', '')
@@ -470,7 +499,6 @@ def admin_create_poll():
                 poll.rating_min = int(request.form.get('rating_min', 1))
                 poll.rating_max = int(request.form.get('rating_max', 5))
                 
-
                 label_min = request.form.get('rating_label_min', '').strip()
                 label_max = request.form.get('rating_label_max', '').strip()
                 
@@ -482,32 +510,47 @@ def admin_create_poll():
                         labels[str(poll.rating_max)] = label_max
                     poll.set_rating_labels(labels)
             
-
+            # 处理地理位置
             zipcodes_json = request.form.get('zipcodes', '[]')
             cities_json = request.form.get('cities', '[]')
+            districts_json = request.form.get('districts', '[]')  # 新增：获取学区数据
             
             selected_zipcodes = json.loads(zipcodes_json)
             selected_cities = json.loads(cities_json)
+            selected_districts = json.loads(districts_json)  # 新增
             
-            if not selected_zipcodes and not selected_cities:
-                flash('Please select at least one zip code or city', 'error')
+            if not selected_zipcodes and not selected_cities and not selected_districts:
+                flash('Please select at least one zip code, city, or school district', 'error')
                 db.close()
                 return redirect(url_for('admin_create_poll'))
             
-
+            # 收集所有邮编对象
             zipcode_objects = []
             cities_list = []
             states_list = set()
             
-
+            # 添加直接选择的邮编
             for zip_code in selected_zipcodes:
                 zc = db.query(ZipCode).filter_by(zip_code=zip_code).first()
+                
+                if not zc:
+                    school = db.query(School).filter_by(zip_code=zip_code).first()
+                    if school:
+                        zc = ZipCode(
+                            zip_code=zip_code,
+                            city=school.city,
+                            state='CA',
+                            county=school.county
+                        )
+                        db.add(zc)
+                        db.flush()
+                
                 if zc:
                     zipcode_objects.append(zc)
                     cities_list.append({"city": zc.city, "state": zc.state})
                     states_list.add(zc.state)
             
-
+            # 添加城市的所有邮编
             for city_data in selected_cities:
                 city = city_data['city']
                 state = city_data['state']
@@ -524,29 +567,70 @@ def admin_create_poll():
                 cities_list.append({"city": city, "state": state})
                 states_list.add(state)
             
-
+            # 新增：处理学区关联
+            district_objects = []
+            
+            for district_data in selected_districts:
+                district_name = district_data['district']
+                
+                # 查找学区（只查找 District 类型）
+                district = db.query(School).filter(
+                    School.district == district_name,
+                    School.record_type == 'District'
+                ).first()
+                
+                if district:
+                    district_objects.append(district)
+                    
+                    # 获取学区的邮编
+                    district_zipcodes = db.query(School.zip_code).filter(
+                        School.district == district_name,
+                        School.zip_code.isnot(None)
+                    ).distinct().all()
+                    
+                    for (zip_code,) in district_zipcodes:
+                        zc = db.query(ZipCode).filter_by(zip_code=zip_code).first()
+                        
+                        if not zc:
+                            school = db.query(School).filter_by(zip_code=zip_code).first()
+                            if school:
+                                zc = ZipCode(
+                                    zip_code=zip_code,
+                                    city=school.city,
+                                    state='CA',
+                                    county=school.county
+                                )
+                                db.add(zc)
+                                db.flush()
+                        
+                        if zc and zc not in zipcode_objects:
+                            zipcode_objects.append(zc)
+                            cities_list.append({"city": zc.city, "state": zc.state})
+                            states_list.add(zc.state)
+            
+            # 关联邮编
             poll.zipcodes.extend(zipcode_objects)
             
-
+            # 新增：关联学区
+            poll.districts.extend(district_objects)
+            
+            # 设置城市和州信息
             poll.set_cities(cities_list)
             poll.set_states(list(states_list))
             
             db.add(poll)
             db.commit()
             
-            flash(f'✅ Poll "{title}" created successfully!', 'success')
-            return redirect(url_for('admin_poll_detail', poll_id=poll.id))
+            flash(f'Poll "{title}" created successfully!', 'success')
+            return redirect(url_for('admin_poll_results', poll_id=poll.id))
         
         except Exception as e:
-            flash(f'❌ Error creating poll: {str(e)}', 'error')
+            flash(f'Error creating poll: {str(e)}', 'error')
             db.rollback()
             db.close()
             return redirect(url_for('admin_create_poll'))
     
     return render_template('admin/create_poll_v2.html')
-
-
-
 # ============================================
 # 管理员：投票详情（重定向到结果页面）
 # ============================================
@@ -865,7 +949,84 @@ def export_poll_csv(poll_id):
     
     return output
 
+@app.route('/api/search-schools')
+def api_search_schools():
+    """
+    搜索学区 API
+    支持：学区名、城市名、县名、邮编
+    """
+    query = request.args.get('q', '').strip()
+    
+    if not query or len(query) < 2:
+        return {'schools': []}
+    
+    db = get_db()
+    
+    # 搜索学区（只返回 District 类型）
+    schools = db.query(School).filter(
+        School.record_type == 'District',
+        (School.district.ilike(f'%{query}%')) |
+        (School.city.ilike(f'%{query}%')) |
+        (School.county.ilike(f'%{query}%'))
+    ).limit(15).all()
+    
+    results = []
+    for school in schools:
+        # 统计该学区有多少个邮编
+        zipcodes = db.query(School.zip_code).filter(
+            School.district == school.district,
+            School.zip_code.isnot(None)
+        ).distinct().all()
+        
+        zipcode_count = len(zipcodes)
+        
+        results.append({
+            'district': school.district,
+            'county': school.county,
+            'city': school.city,
+            'zip_code': school.zip_code,
+            'zipcode_count': zipcode_count,
+            'cds_code': school.cds_code
+        })
+    
+    db.close()
+    
+    return {'schools': results}
 
+
+@app.route('/api/get-district-zipcodes')
+def api_get_district_zipcodes():
+    """
+    根据学区名获取所有邮编
+    """
+    district_name = request.args.get('district', '').strip()
+    
+    if not district_name:
+        return {'zipcodes': []}
+    
+    db = get_db()
+    
+    # 获取该学区的所有邮编
+    zipcodes_data = db.query(
+        School.zip_code,
+        School.city
+    ).filter(
+        School.district == district_name,
+        School.zip_code.isnot(None)
+    ).distinct().all()
+    
+    # 转换为字典列表
+    zipcodes = [
+        {
+            'zip_code': zc,
+            'city': city
+        }
+        for zc, city in zipcodes_data
+    ]
+    
+    db.close()
+    
+    return {'zipcodes': zipcodes}
 
 
 if __name__ == '__main__':    
