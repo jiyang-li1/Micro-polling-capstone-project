@@ -175,13 +175,13 @@
 </head>
 <body>
     <div class="container">
-        <h1>✏️ Edit Poll</h1>
+        <h1>Edit Poll</h1>
         
         <div class="poll-type-display">
-            {% if poll.poll_type == 'single_choice' %}🔘 Single Choice
-            {% elif poll.poll_type == 'multiple_choice' %}☑️ Multiple Choice
-            {% elif poll.poll_type == 'rating_scale' %}⭐ Rating Scale
-            {% elif poll.poll_type == 'ranked_choice' %}🔢 Ranked Choice
+            {% if poll.poll_type == 'single_choice' %}Single Choice
+            {% elif poll.poll_type == 'multiple_choice' %}Multiple Choice
+            {% elif poll.poll_type == 'rating_scale' %}Rating Scale
+            {% elif poll.poll_type == 'ranked_choice' %}Ranked Choice
             {% endif %}
         </div>
         
@@ -194,7 +194,7 @@
         {% endwith %}
         
         <div class="warning-box">
-            ⚠️ <strong>Note:</strong> Poll type cannot be changed after creation. Editing options will not affect existing votes.
+            <strong>Note:</strong> Poll type cannot be changed after creation. Editing options will not affect existing votes.
         </div>
         
         <form method="POST">
@@ -217,8 +217,8 @@
             <div class="form-group">
                 <label for="is_active">Status</label>
                 <select id="is_active" name="is_active">
-                    <option value="1" {% if poll.is_active == 1 %}selected{% endif %}>✅ Active</option>
-                    <option value="0" {% if poll.is_active == 0 %}selected{% endif %}>❌ Inactive</option>
+                    <option value="1" {% if poll.is_active == 1 %}selected{% endif %}>Active</option>
+                    <option value="0" {% if poll.is_active == 0 %}selected{% endif %}>Inactive</option>
                 </select>
             </div>
             
@@ -299,7 +299,7 @@
             
             <!-- Submit Buttons -->
             <div class="buttons">
-                <button type="submit" class="btn btn-primary">💾 Save Changes</button>
+                <button type="submit" class="btn btn-primary">Save Changes</button>
                 <a href="{{ url_for('admin_poll_detail', poll_id=poll.id) }}" class="btn btn-secondary">Cancel</a>
             </div>
         </form>
