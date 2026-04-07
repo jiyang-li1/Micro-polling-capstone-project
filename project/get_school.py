@@ -1,4 +1,4 @@
-# import_schools.py - 导入学区数据
+# import_schools.py - Import district data
 
 import pandas as pd
 from model_v2 import init_db, get_session, Base
@@ -42,17 +42,17 @@ db = get_session(engine)
 db.query(School).delete()
 db.commit()
 
-# 读取 Excel 文件
+# Read Excel file
 excel_file = '../CDESchoolDirectoryExport.xlsx'
 
 
 try:
     df = pd.read_excel(excel_file)
-    df.dropna(how='all', inplace=True)  # 删除全空行
+    df.dropna(how='all', inplace=True)  # Remove all-empty rows
 
     print(f"列名: {df.columns.tolist()}")
     
-    # 映射列名
+    # Map column names
     column_mapping = {
         'CDS Code': 'cds_code',
         'Record Type': 'record_type',
@@ -73,7 +73,7 @@ try:
 
             zip_code = str(row['Street Zip']).split('-')[0] if pd.notna(row['Street Zip']) else None
             
-            # 处理 "No Data"
+            # Handle "No Data"
             school_name = row['School'] if row['School'] != 'No Data' else None
             
             school = School(
@@ -91,14 +91,14 @@ try:
             db.add(school)
             count += 1
             
-            # 每1000条提交一次
+            # Commit every 1000 records
             if count % 1000 == 0:
                 db.commit()
                 print(f"已导入 {count} 条...")
         
         except Exception as e:
             errors += 1
-            if errors <= 5:  # 只显示前5个错误
+            if errors <= 5:  # Only show the first 5 errors
                 print(f"错误（行 {idx+2}）: {e}")
     
     db.commit()
@@ -130,7 +130,7 @@ print(f" Districts: {districts}")
 print(f" Schools: {schools}")
 
 
-# 显示示例数据
+# Show sample data
 print("\n示例数据（前10条）：")
 samples = db.query(School).limit(10).all()
 for s in samples:
