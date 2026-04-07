@@ -1,4 +1,4 @@
-# test_search_by_district.py - 测试学区搜索功能
+# test_search_by_district.py - Test district search functionality
 
 from model_v2 import init_db, get_session, School, ZipCode, Poll, poll_zipcodes
 
@@ -9,12 +9,12 @@ print("\n" + "="*60)
 print("测试学区搜索功能")
 print("="*60)
 
-# 输入学区名
+# Input district name
 district_query = input("\n输入学区名称（例如：Berkeley Unified）: ").strip()
 
 print(f"\n搜索: '{district_query}'")
 
-# 步骤1：查找学区
+# Step 1: Find district
 print("\n步骤1：查找学区...")
 districts = db.query(School).filter(
     School.district.ilike(f'%{district_query}%'),
@@ -30,11 +30,11 @@ if not districts:
     db.close()
     exit()
 
-# 使用第一个学区
+# Use the first district
 district = districts[0]
 print(f"\n使用学区: {district.district}")
 
-# 步骤2：获取学区的所有邮编
+# Step 2: Get all zip codes for the district
 print("\n步骤2：获取学区邮编...")
 district_zipcodes = db.query(School.zip_code).filter(
     School.district == district.district,
@@ -44,7 +44,7 @@ district_zipcodes = db.query(School.zip_code).filter(
 zipcodes = [zc[0] for zc in district_zipcodes]
 print(f"学区有 {len(zipcodes)} 个邮编: {zipcodes[:10]}{'...' if len(zipcodes) > 10 else ''}")
 
-# 步骤3：在 zipcodes 表中查找这些邮编的 ID
+# Step 3: Find these zip code IDs in the zipcodes table
 print("\n步骤3：在 zipcodes 表中查找邮编 ID...")
 zipcode_objs = db.query(ZipCode).filter(
     ZipCode.zip_code.in_(zipcodes)
@@ -58,7 +58,7 @@ if not zipcode_ids:
     db.close()
     exit()
 
-# 步骤4：查找使用这些邮编的投票
+# Step 4: Find polls using these zip codes
 print("\n步骤4：查找关联的投票...")
 poll_ids = db.query(poll_zipcodes.c.poll_id).filter(
     poll_zipcodes.c.zipcode_id.in_(zipcode_ids)
@@ -73,7 +73,7 @@ if not poll_id_list:
     db.close()
     exit()
 
-# 步骤5：获取投票详情
+# Step 5: Get poll details
 print("\n步骤5：获取投票详情...")
 polls = db.query(Poll).filter(
     Poll.id.in_(poll_id_list),
@@ -83,7 +83,7 @@ polls = db.query(Poll).filter(
 print(f"\n找到 {len(polls)} 个活跃的投票:")
 for poll in polls:
     print(f"  [{poll.id}] {poll.title}")
-    # 显示投票的邮编
+    # Show poll's zip codes
     poll_zips = [z.zip_code for z in poll.zipcodes]
     print(f"      邮编: {poll_zips[:5]}{'...' if len(poll_zips) > 5 else ''}")
 
