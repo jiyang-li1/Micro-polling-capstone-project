@@ -6,7 +6,7 @@ engine = init_db('sqlite:///polling_v2.db')
 db = get_session(engine)
 
 print("\n" + "="*60)
-print("同步学区邮编到 zipcodes 表")
+print("Sync district zip codes to zipcodes table")
 print("="*60)
 
 # Get all district zip codes
@@ -18,7 +18,7 @@ school_zipcodes = db.query(
     School.zip_code.isnot(None)
 ).distinct().all()
 
-print(f"\n在 schools 表中找到 {len(school_zipcodes)} 个唯一邮编")
+print(f"\nFound {len(school_zipcodes)} unique zip codes in schools table")
 
 added = 0
 existing = 0
@@ -40,16 +40,16 @@ for zip_code, city, county in school_zipcodes:
         
         if added % 100 == 0:
             db.commit()
-            print(f"已添加 {added} 个邮编...")
+            print(f"Added {added} zip codes...")
     else:
         existing += 1
 
 db.commit()
 
-print(f"\n完成！")
-print(f"  新增邮编: {added}")
-print(f"  已存在: {existing}")
-print(f"  总计: {added + existing}")
+print(f"\nDone!")
+print(f"  New zip codes: {added}")
+print(f"  Already existed: {existing}")
+print(f"  Total: {added + existing}")
 print("="*60 + "\n")
 
 db.close()
