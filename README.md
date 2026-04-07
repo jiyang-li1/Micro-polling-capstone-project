@@ -6,17 +6,31 @@ A web-based micro-polling application that lets communities submit and view opin
 
 ## Table of Contents
 
-- [Features](#features)
-- [Tech Stack](#tech-stack)
-- [Project Structure](#project-structure)
-- [Setup Guide](#setup-guide)
-- [Running the App](#running-the-app)
-- [Admin Usage](#admin-usage)
-- [User Workflow](#user-workflow)
-- [API Endpoints](#api-endpoints)
-- [Database Overview](#database-overview)
-- [Utility Scripts](#utility-scripts)
-- [Known Issues](#known-issues)
+- [Micro-Polling Capstone Project](#micro-polling-capstone-project)
+  - [Table of Contents](#table-of-contents)
+  - [Features](#features)
+  - [Tech Stack](#tech-stack)
+  - [Project Structure](#project-structure)
+  - [Setup Guide](#setup-guide)
+    - [Prerequisites](#prerequisites)
+    - [Step 1 — Create and activate a virtual environment](#step-1--create-and-activate-a-virtual-environment)
+    - [Step 2 — Install dependencies](#step-2--install-dependencies)
+    - [Step 3 — Navigate to the project directory](#step-3--navigate-to-the-project-directory)
+    - [Step 4 — Initialize the database](#step-4--initialize-the-database)
+  - [Running the App](#running-the-app)
+  - [Admin Usage](#admin-usage)
+    - [Dashboard](#dashboard)
+    - [Create a Poll](#create-a-poll)
+    - [Manage Polls](#manage-polls)
+  - [User Workflow](#user-workflow)
+  - [API Endpoints](#api-endpoints)
+    - [Public Routes](#public-routes)
+    - [Admin Routes (login required)](#admin-routes-login-required)
+  - [Database Overview](#database-overview)
+    - [Version 2 Schema](#version-2-schema)
+  - [Utility Scripts](#utility-scripts)
+  - [Known Issues](#known-issues)
+  - [Default Credentials](#default-credentials)
 
 ---
 
@@ -292,7 +306,6 @@ From the admin dashboard you can:
 ## Known Issues
 
 - **Mobile scaling**: UI layout does not scale correctly on small screens
-- **Orphaned votes**: Deleting a choice from an existing poll leaves vote records that reference the removed choice, causing incorrect percentage calculations (see test Poll 5)
 - **No IP-based deduplication**: There is currently no mechanism to prevent a single user from voting multiple times
 - **Geographic verification**: The system does not verify that a user is actually located in the zip code or district they are browsing
 
