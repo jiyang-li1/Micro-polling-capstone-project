@@ -17,13 +17,13 @@ username = input("输入管理员用户名: ").strip()
 password = input("输入管理员密码: ").strip()
 
 if not username or not password:
-    print("\n❌ 用户名和密码不能为空！")
+    print("\nError: username and password cannot be empty.")
     exit(1)
 
 # Check if already exists
 existing = db.query(Admin).filter_by(username=username).first()
 if existing:
-    print(f"\n❌ 用户名 '{username}' 已存在！")
+    print(f"\nError: username '{username}' already exists.")
     db.close()
     exit(1)
 
@@ -36,7 +36,7 @@ admin = Admin(
 db.add(admin)
 db.commit()
 
-print(f"\n✅ 管理员 '{username}' 创建成功！")
+print(f"\nAdmin '{username}' created successfully.")
 print("\n登录信息：")
 print(f"  用户名: {username}")
 print(f"  密码: {password}")
