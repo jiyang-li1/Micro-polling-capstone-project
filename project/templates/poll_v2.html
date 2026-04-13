@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ poll.title }} - Vote</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 700px;
+            margin: 50px auto;
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        
+        .poll-type-badge {
+            display: inline-block;
+            padding: 5px 12px;
+            background: #e3f2fd;
+            color: #1976d2;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        
+        h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 32px;
+        }
+        
+        h4 {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 20px;
+            font-weight: normal;
+        }
+        
+        .description {
+            color: #666;
+            margin-bottom: 30px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+        
+        form {
+            margin-bottom: 30px;
+        }
+        
+        .option-button {
+            display: block;
+            width: 100%;
+            padding: 18px;
+            margin: 12px 0;
+            font-size: 18px;
+            font-weight: bold;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: left;
+        }
+        
+        .option-button:hover {
+            background: #0056b3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,123,255,0.3);
+        }
+        
+        .option-button:active {
+            transform: translateY(0);
+        }
+        
+        .checkbox-option {
+            display: block;
+            padding: 15px;
+            margin: 12px 0;
+            background: #f8f9fa;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .checkbox-option:hover {
+            border-color: #007bff;
+            background: #f0f4ff;
+        }
+        
+        .checkbox-option input[type="checkbox"] {
+            margin-right: 12px;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+        
+        .checkbox-option label {
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        
+        .rating-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 30px 0;
+        }
+        
+        .rating-stars {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .star {
+            font-size: 48px;
+            cursor: pointer;
+            color: #ddd;
+            transition: all 0.2s;
+            user-select: none;
+        }
+        
+        .star:hover,
+        .star.active {
+            color: #ffc107;
+            transform: scale(1.1);
+        }
+        
+        .rating-labels {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            margin-top: 10px;
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .ranked-options {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .ranked-option {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            margin: 10px 0;
+            background: #f8f9fa;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            cursor: move;
+            transition: all 0.3s;
+        }
+        
+        .ranked-option:hover {
+            border-color: #007bff;
+            background: #f0f4ff;
+        }
+        
+        .ranked-option.dragging {
+            opacity: 0.5;
+        }
+        
+        .rank-number {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background: #007bff;
+            color: white;
+            border-radius: 50%;
+            font-weight: bold;
+            font-size: 18px;
+        }
+        
+        .rank-label {
+            flex: 1;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        
+        .drag-handle {
+            color: #999;
+            font-size: 24px;
+            user-select: none;
+        }
+        
+        .ranking-instruction {
+            text-align: center;
+            color: #666;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #e3f2fd;
+            border-radius: 8px;
+        }
+        
+        .submit-button {
+            width: 100%;
+            padding: 18px;
+            font-size: 18px;
+            font-weight: bold;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 20px;
+        }
+        
+        .submit-button:hover {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+        
+        .submit-button:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+        
+        .info {
+            margin-top: 30px;
+            padding: 15px;
+            background: #e9ecef;
+            border-radius: 8px;
+            font-size: 14px;
+            color: #666;
+            border-left: 4px solid #007bff;
+        }
+        
+        .info strong {
+            color: #333;
+        }
+        
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            color: #007bff;
+            text-decoration: none;
+            font-size: 16px;
+        }
+        
+        .back-link:hover {
+            text-decoration: underline;
+        }
+        
+        .choice-count {
+            text-align: center;
+            margin-top: 15px;
+            color: #666;
+            font-size: 14px;
+        }
+        
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            .container {
+                padding: 20px;
+                margin: 20px auto;
+            }
+            
+            h2 {
+                font-size: 24px;
+            }
+            
+            h4 {
+                font-size: 16px;
+            }
+            
+            .option-button {
+                font-size: 16px;
+                padding: 15px;
+            }
+            
+            .star {
+                font-size: 36px;
+            }
+            
+            .ranked-option {
+                padding: 12px;
+            }
+            
+            .rank-number {
+                width: 35px;
+                height: 35px;
+                font-size: 16px;
+            }
+            
+            .rank-label {
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <span class="poll-type-badge">
+            {% if poll.poll_type == 'single_choice' %}Single Choice
+            {% elif poll.poll_type == 'multiple_choice' %}Multiple Choice
+            {% elif poll.poll_type == 'rating_scale' %}Rating Scale
+            {% elif poll.poll_type == 'ranked_choice' %}Ranked Choice
+            {% endif %}
+        </span>
+        
+        <h2>{{ poll.title }}</h2>
+        <h4>{{ poll.question }}</h4>
+        
+        {% if poll.description %}
+        <div class="description">
+            {{ poll.description }}
+        </div>
+        {% endif %}
+        
+        <form method="POST" action="{{ url_for('submit_vote', poll_id=poll.id) }}" id="voteForm">
+            
+            {% if poll.poll_type == 'single_choice' %}
+                {% for option in poll.get_options() %}
+                <button type="submit" name="choice" value="{{ loop.index0 }}" class="option-button">
+                    {{ option }}
+                </button>
+                {% endfor %}
+            
+            {% elif poll.poll_type == 'multiple_choice' %}
+                <div class="ranking-instruction">
+                    Select 
+                    {% if poll.min_choices == poll.max_choices %}
+                        exactly {{ poll.min_choices }}
+                    {% elif poll.max_choices %}
+                        {{ poll.min_choices }} to {{ poll.max_choices }}
+                    {% else %}
+                        at least {{ poll.min_choices }}
+                    {% endif %}
+                    option(s)
+                </div>
+                
+                {% for option in poll.get_options() %}
+                <div class="checkbox-option">
+                    <input type="checkbox" 
+                           name="choices" 
+                           value="{{ loop.index0 }}" 
+                           id="option_{{ loop.index0 }}"
+                           onchange="updateChoiceCount()">
+                    <label for="option_{{ loop.index0 }}">{{ option }}</label>
+                </div>
+                {% endfor %}
+                
+                <div class="choice-count" id="choiceCount">0 selected</div>
+                
+                <button type="submit" class="submit-button" id="submitBtn">Submit Vote</button>
+            
+            {% elif poll.poll_type == 'rating_scale' %}
+                <div class="rating-container">
+                    <div class="rating-stars" id="ratingStars">
+                        {% for i in range(poll.rating_min, poll.rating_max + 1) %}
+                        <span class="star" data-rating="{{ i }}" onclick="selectRating({{ i }})">&#9733;</span>
+                        {% endfor %}
+                    </div>
+                    
+                    <input type="hidden" name="rating" id="ratingInput">
+                    
+                    {% set labels = poll.get_rating_labels() %}
+                    {% if labels %}
+                    <div class="rating-labels">
+                        <span>{{ labels.get(poll.rating_min|string, '') }}</span>
+                        <span>{{ labels.get(poll.rating_max|string, '') }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <button type="submit" class="submit-button" id="submitBtn" disabled>Submit Rating</button>
+            
+            {% elif poll.poll_type == 'ranked_choice' %}
+                <div class="ranking-instruction">
+                    Drag to rank options by preference (1st choice at top)
+                </div>
+                
+                <ul class="ranked-options" id="rankedList">
+                    {% for option in poll.get_options() %}
+                    <li class="ranked-option" draggable="true" data-index="{{ loop.index0 }}">
+                        <span class="rank-number">{{ loop.index }}</span>
+                        <span class="rank-label">{{ option }}</span>
+                        <span class="drag-handle">&#9776;</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+                
+                <input type="hidden" name="ranking" id="rankingInput">
+                
+                <button type="submit" class="submit-button">Submit Ranking</button>
+            
+            {% endif %}
+        </form>
+        
+        <div class="info">
+            <strong>Location:</strong> {{ poll.get_cities()[0].city if poll.get_cities() else 'Multiple' }}, 
+            {{ poll.get_states()[0] if poll.get_states() else '' }} |
+            <strong>Created:</strong> {{ poll.created_at.strftime('%Y-%m-%d %H:%M') }} |
+            <strong>Poll ID:</strong> {{ poll.id }}
+        </div>
+        
+        <a href="{{ url_for('index') }}" class="back-link">Back to Home</a>
+    </div>
+
+    <script>
+        {% if poll.poll_type == 'multiple_choice' %}
+        function updateChoiceCount() {
+            const checkboxes = document.querySelectorAll('input[name="choices"]:checked');
+            const count = checkboxes.length;
+            document.getElementById('choiceCount').textContent = `${count} selected`;
+            
+            const submitBtn = document.getElementById('submitBtn');
+            const minChoices = {{ poll.min_choices }};
+            const maxChoices = {{ poll.max_choices if poll.max_choices else 999 }};
+            
+            if (count >= minChoices && count <= maxChoices) {
+                submitBtn.disabled = false;
+            } else {
+                submitBtn.disabled = true;
+            }
+        }
+        
+        updateChoiceCount();
+        {% endif %}
+        
+        {% if poll.poll_type == 'rating_scale' %}
+        let selectedRating = 0;
+        
+        function selectRating(rating) {
+            selectedRating = rating;
+            document.getElementById('ratingInput').value = rating;
+            document.getElementById('submitBtn').disabled = false;
+            
+            const stars = document.querySelectorAll('.star');
+            stars.forEach(star => {
+                const starRating = parseInt(star.dataset.rating);
+                if (starRating <= rating) {
+                    star.classList.add('active');
+                } else {
+                    star.classList.remove('active');
+                }
+            });
+        }
+        {% endif %}
+        
+        {% if poll.poll_type == 'ranked_choice' %}
+        const rankedList = document.getElementById('rankedList');
+        let draggedElement = null;
+        
+        rankedList.addEventListener('dragstart', function(e) {
+            draggedElement = e.target;
+            e.target.classList.add('dragging');
+        });
+        
+        rankedList.addEventListener('dragend', function(e) {
+            e.target.classList.remove('dragging');
+            updateRanking();
+        });
+        
+        rankedList.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            const afterElement = getDragAfterElement(rankedList, e.clientY);
+            if (afterElement == null) {
+                rankedList.appendChild(draggedElement);
+            } else {
+                rankedList.insertBefore(draggedElement, afterElement);
+            }
+        });
+        
+        function getDragAfterElement(container, y) {
+            const draggableElements = [...container.querySelectorAll('.ranked-option:not(.dragging)')];
+            
+            return draggableElements.reduce((closest, child) => {
+                const box = child.getBoundingClientRect();
+                const offset = y - box.top - box.height / 2;
+                
+                if (offset < 0 && offset > closest.offset) {
+                    return { offset: offset, element: child };
+                } else {
+                    return closest;
+                }
+            }, { offset: Number.NEGATIVE_INFINITY }).element;
+        }
+        
+        function updateRanking() {
+            const items = rankedList.querySelectorAll('.ranked-option');
+            const ranking = [];
+            
+            items.forEach((item, index) => {
+                item.querySelector('.rank-number').textContent = index + 1;
+                ranking.push(parseInt(item.dataset.index));
+            });
+            
+            document.getElementById('rankingInput').value = JSON.stringify(ranking);
+        }
+        
+        updateRanking();
+        {% endif %}
+    </script>
+</body>
+</html>

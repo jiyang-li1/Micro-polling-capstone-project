@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ data.poll.title }} - Results</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 50px auto;
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        
+        .poll-type-badge {
+            display: inline-block;
+            padding: 6px 14px;
+            background: #e3f2fd;
+            color: #1976d2;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+        }
+        
+        .total-votes {
+            text-align: center;
+            padding: 25px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+        
+        .total-votes h2 {
+            font-size: 36px;
+            margin: 0;
+        }
+        
+        .result-item {
+            margin-bottom: 25px;
+        }
+        
+        .result-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .result-bar-container {
+            height: 40px;
+            background: #e9ecef;
+            border-radius: 20px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .result-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #28a745, #20c997);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            transition: width 1s ease;
+            font-size: 16px;
+        }
+        
+        .rating-summary {
+            text-align: center;
+            padding: 40px;
+            background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+            color: white;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+        
+        .rating-average {
+            font-size: 72px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .rating-stars {
+            font-size: 36px;
+            margin-bottom: 10px;
+        }
+        
+        .rating-distribution {
+            margin-top: 30px;
+        }
+        
+        .rating-row {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .rating-label {
+            min-width: 100px;
+            font-weight: bold;
+            color: #333;
+            text-align: right;
+        }
+        
+        .rating-bar-container {
+            flex: 1;
+            height: 30px;
+            background: #e9ecef;
+            border-radius: 15px;
+            overflow: hidden;
+        }
+        
+        .rating-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #ffc107, #ff9800);
+            transition: width 1s ease;
+        }
+        
+        .rating-count {
+            min-width: 80px;
+            text-align: right;
+            color: #666;
+        }
+        
+        .ranked-results {
+            margin-top: 30px;
+        }
+        
+        .ranked-item {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            padding: 20px;
+            margin-bottom: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 4px solid #007bff;
+        }
+        
+        .ranked-position {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 80px;
+        }
+        
+        .position-number {
+            font-size: 32px;
+            font-weight: bold;
+            color: #007bff;
+        }
+        
+        .position-label {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+        }
+        
+        .ranked-content {
+            flex: 1;
+        }
+        
+        .ranked-name {
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .ranked-stats {
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .buttons {
+            text-align: center;
+            margin-top: 40px;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 12px 30px;
+            margin: 0 10px;
+            background: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        
+        .btn:hover {
+            background: #0056b3;
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        
+        .no-votes {
+            text-align: center;
+            color: #999;
+            padding: 40px;
+            font-size: 18px;
+        }
+        
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            .container {
+                padding: 20px;
+                margin: 20px auto;
+            }
+            
+            h1 {
+                font-size: 24px;
+            }
+            
+            .total-votes h2 {
+                font-size: 28px;
+            }
+            
+            .rating-average {
+                font-size: 48px;
+            }
+            
+            .rating-stars {
+                font-size: 24px;
+            }
+            
+            .rating-row {
+                flex-wrap: wrap;
+            }
+            
+            .rating-label {
+                min-width: 80px;
+                font-size: 14px;
+            }
+            
+            .ranked-item {
+                flex-wrap: wrap;
+            }
+            
+            .ranked-position {
+                min-width: 60px;
+            }
+            
+            .position-number {
+                font-size: 24px;
+            }
+            
+            .buttons {
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .btn {
+                margin: 0;
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <span class="poll-type-badge">
+            {% if data.poll.poll_type == 'single_choice' %}Single Choice
+            {% elif data.poll.poll_type == 'multiple_choice' %}Multiple Choice
+            {% elif data.poll.poll_type == 'rating_scale' %}Rating Scale
+            {% elif data.poll.poll_type == 'ranked_choice' %}Ranked Choice
+            {% endif %}
+        </span>
+        
+        <h1>{{ data.poll.title }}</h1>
+        <p class="subtitle">Results</p>
+        
+        <div class="total-votes">
+            <h2>Total Votes: {{ data.total_votes }}</h2>
+        </div>
+        
+        {% if data.total_votes > 0 %}
+            
+            {% if data.poll.poll_type in ['single_choice', 'multiple_choice'] %}
+                {% for option, stats in data.results.items() %}
+                <div class="result-item">
+                    <div class="result-label">
+                        <span>{{ option }}</span>
+                        <span>{{ stats.count }} vote{% if stats.count != 1 %}s{% endif %} ({{ stats.percentage }}%)</span>
+                    </div>
+                    <div class="result-bar-container">
+                        <div class="result-bar" style="width: {{ stats.percentage }}%">
+                            {{ stats.percentage }}%
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            
+            {% elif data.poll.poll_type == 'rating_scale' %}
+                <div class="rating-summary">
+                    <div class="rating-average">{{ data.results.average }}</div>
+                    <div class="rating-stars">
+                        {% for i in range(data.results.max) %}
+                            {% if i < data.results.average|int %}&#9733;{% else %}&#9734;{% endif %}
+                        {% endfor %}
+                    </div>
+                    <div>Average Rating</div>
+                </div>
+                
+                <div class="rating-distribution">
+                    <h3 style="margin-bottom: 20px; color: #333;">Rating Distribution</h3>
+                    {% for rating in range(data.results.max, data.results.min - 1, -1) %}
+                    <div class="rating-row">
+                        <div class="rating-label">{{ rating }} Star{% if rating != 1 %}s{% endif %}</div>
+                        <div class="rating-bar-container">
+                            {% set count = data.results.ratings.get(rating|string, 0) %}
+                            {% set percentage = (count / data.total_votes * 100) if data.total_votes > 0 else 0 %}
+                            <div class="rating-bar" style="width: {{ percentage }}%"></div>
+                        </div>
+                        <div class="rating-count">{{ count }} vote{% if count != 1 %}s{% endif %}</div>
+                    </div>
+                    {% endfor %}
+                </div>
+            
+            {% elif data.poll.poll_type == 'ranked_choice' %}
+                <div class="ranked-results">
+                    <h3 style="margin-bottom: 20px; color: #333;">Average Rankings</h3>
+                    
+                    {% set sorted_results = data.results.items()|sort(attribute='1.average_rank') %}
+                    {% for option, stats in sorted_results %}
+                    <div class="ranked-item">
+                        <div class="ranked-position">
+                            <div class="position-number">#{{ loop.index }}</div>
+                            <div class="position-label">RANK</div>
+                        </div>
+                        <div class="ranked-content">
+                            <div class="ranked-name">{{ option }}</div>
+                            <div class="ranked-stats">
+                                Average Position: {{ stats.average_rank }} | 
+                                Ranked by {{ stats.times_ranked }} voter{% if stats.times_ranked != 1 %}s{% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            
+            {% endif %}
+        
+        {% else %}
+            <p class="no-votes">
+                No votes yet. Be the first to vote!
+            </p>
+        {% endif %}
+        
+        <div class="buttons">
+            <a href="{{ url_for('poll_page', poll_id=data.poll.id) }}" class="btn">Vote Again</a>
+            <a href="{{ url_for('index') }}" class="btn btn-secondary">Back to Home</a>
+        </div>
+    </div>
+</body>
+</html>

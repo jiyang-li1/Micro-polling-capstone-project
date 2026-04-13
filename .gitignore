@@ -1,5 +1,9 @@
 capstone/
 **/capstone/
 *.db
-project/__pycache__/model.cpython-313.pyc
 *.pyc
+__pycache__/
+project/sqlite3.def
+project/sqlite3.dll
+*.exe
+.claude/
