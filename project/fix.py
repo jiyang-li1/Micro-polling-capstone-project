@@ -1,6 +1,6 @@
-# fix_district_zipcodes.py - Sync zip codes from schools table to zipcodes table
+# fix.py - Sync zip codes from schools table to zipcodes table
 
-from model_v2 import init_db, get_session, School, ZipCode
+from model import init_db, get_session, School, ZipCode
 
 engine = init_db('sqlite:///polling_v2.db')
 db = get_session(engine)

@@ -1,4 +1,4 @@
-# models_v2.py - Database models (with direct district association)
+# model.py - Database models (with direct district association)
 
 from sqlalchemy import create_engine, Column, Integer, String, Text, DateTime, ForeignKey, Table, desc, Index
 from sqlalchemy.orm import declarative_base, relationship, sessionmaker

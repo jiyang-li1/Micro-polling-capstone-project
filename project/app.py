@@ -1,9 +1,9 @@
-# app_v2.py - Flask Application V2 (supports multiple poll types)
+# app.py - Flask Application (supports multiple poll types)
 import csv
 from io import StringIO
 from flask import make_response
 from flask import Flask, render_template, request, redirect, url_for, flash, session
-from model_v2 import (
+from model import (
     init_db, get_session, 
     get_polls_by_zipcode, 
     get_polls_by_city,
@@ -24,7 +24,7 @@ from model_v2 import (
     poll_districts
 )
 
-from model_v2 import School, search_schools, get_zipcodes_by_district
+from model import School, search_schools, get_zipcodes_by_district
 from sqlalchemy import func
 import os
 import hashlib
@@ -443,7 +443,7 @@ def admin_dashboard():
 
 
 
-# app_v2.py - Modify poll creation logic
+# app.py -Modify poll creation logic
 
 @app.route('/admin/poll/create', methods=['GET', 'POST'])
 @login_required
@@ -685,7 +685,7 @@ def admin_poll_results(poll_id):
         states=states
     )
 
-# app_v2.py - Add edit poll route
+# app.py -Add edit poll route
 
 @app.route('/admin/poll/<int:poll_id>/edit', methods=['GET', 'POST'])
 @login_required

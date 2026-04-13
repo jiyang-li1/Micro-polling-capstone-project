@@ -1,6 +1,6 @@
-# migrate_add_poll_districts.py - Add poll_districts table
+# migrate.py - Add poll_districts table
 
-from model_v2 import init_db, Base, get_session, poll_districts
+from model import init_db, Base, get_session, poll_districts
 from sqlalchemy import inspect
 
 print("\n" + "="*60)

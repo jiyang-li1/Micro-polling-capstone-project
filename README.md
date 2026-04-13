@@ -1,48 +1,35 @@
 # Micro-Polling Capstone Project
 
-A web-based micro-polling application that lets communities submit and view opinion polls organized by zip code, city, and school district. Built with Flask and SQLite.
+A web-based micro-polling application that lets communities submit and view opinion polls organized by zip code, city, and California school district. Built with Flask and SQLite.
 
 ---
 
 ## Table of Contents
 
-- [Micro-Polling Capstone Project](#micro-polling-capstone-project)
-  - [Table of Contents](#table-of-contents)
-  - [Features](#features)
-  - [Tech Stack](#tech-stack)
-  - [Project Structure](#project-structure)
-  - [Setup Guide](#setup-guide)
-    - [Prerequisites](#prerequisites)
-    - [Step 1 — Create and activate a virtual environment](#step-1--create-and-activate-a-virtual-environment)
-    - [Step 2 — Install dependencies](#step-2--install-dependencies)
-    - [Step 3 — Navigate to the project directory](#step-3--navigate-to-the-project-directory)
-    - [Step 4 — Initialize the database](#step-4--initialize-the-database)
-  - [Running the App](#running-the-app)
-  - [Admin Usage](#admin-usage)
-    - [Dashboard](#dashboard)
-    - [Create a Poll](#create-a-poll)
-    - [Manage Polls](#manage-polls)
-  - [User Workflow](#user-workflow)
-  - [API Endpoints](#api-endpoints)
-    - [Public Routes](#public-routes)
-    - [Admin Routes (login required)](#admin-routes-login-required)
-  - [Database Overview](#database-overview)
-    - [Version 2 Schema](#version-2-schema)
-  - [Utility Scripts](#utility-scripts)
-  - [Known Issues](#known-issues)
-  - [Default Credentials](#default-credentials)
+- [Features](#features)
+- [Tech Stack](#tech-stack)
+- [Project Structure](#project-structure)
+- [Setup Guide](#setup-guide)
+- [Running the App](#running-the-app)
+- [Admin Usage](#admin-usage)
+- [User Workflow](#user-workflow)
+- [API Endpoints](#api-endpoints)
+- [Database Schema](#database-schema)
+- [Utility Scripts](#utility-scripts)
+- [Known Issues](#known-issues)
+- [Default Credentials](#default-credentials)
 
 ---
 
 ## Features
 
 - **Multiple poll types**: Single choice, multiple choice, rating scale, and ranked choice
-- **Geographic targeting**: Associate polls with zip codes, cities, or school districts
+- **Geographic targeting**: Associate polls with zip codes, cities, or California school districts
 - **Admin dashboard**: Create, edit, delete, activate/deactivate polls, and export results to CSV
-- **Autocomplete search**: Users can search for polls by zip code or city name with live suggestions
-- **School district integration**: Import California school district data and link polls directly to districts
+- **Autocomplete search**: Live suggestions for zip codes, city names, and school district names
+- **School district integration**: Import California school directory data and link polls directly to districts
 - **Vote results**: Results are shown to users immediately after voting
-- **CSV export**: Download poll results from the admin panel
+- **CSV export**: Download full poll results from the admin panel
 
 ---
 
@@ -54,7 +41,7 @@ A web-based micro-polling application that lets communities submit and view opin
 | ORM        | SQLAlchemy                          |
 | Database   | SQLite                              |
 | Frontend   | HTML, CSS, JavaScript, Jinja2       |
-| Data tools | pandas (Excel/CSV import)           |
+| Data tools | pandas (Excel import)               |
 
 ---
 
@@ -62,49 +49,32 @@ A web-based micro-polling application that lets communities submit and view opin
 
 ```
 Micro-polling-capstone-project/
-├── project/                        # Main application directory
-│   ├── main.py                     # Flask app — version 1 (zip code only)
-│   ├── main_v2.py                  # Flask app — version 2 (recommended, adds districts)
-│   ├── model.py                    # SQLAlchemy models for v1
-│   ├── model_v2.py                 # SQLAlchemy models for v2
-│   ├── models_school.py            # School/district specific models
+├── project/                      # Main application directory
+│   ├── app.py                    # Flask application entry point
+│   ├── model.py                  # SQLAlchemy models (Poll, Vote, Admin, ZipCode, School)
 │   │
-│   ├── db_init.py                  # Initialize v1 database schema
-│   ├── reset.py                    # Wipe and recreate the v2 database
-│   ├── migrate_2_v2.py             # Migrate data from v1 to v2
+│   ├── reset.py                  # Wipe and recreate the database
+│   ├── create_admin.py           # Create an admin account interactively
+│   ├── import_schools.py         # Import California school/district data from Excel
+│   ├── migrate.py                # Add poll_districts table to an existing database
+│   ├── fix.py                    # Sync school zip codes into the zipcodes table
+│   ├── check.py                  # Diagnostic script for district search
 │   │
-│   ├── import_zipcode_db.py        # Import zip codes from ZIP_Locale_Detail.csv
-│   ├── import_schools_v2.py        # Import school/district data from Excel
-│   │
-│   ├── create_admin.py             # Create admin user (v1)
-│   ├── create_admin_v2.py          # Create admin user (v2)
-│   ├── create_admin_school.py      # Create admin user (school version)
-│   │
-│   ├── fix.py                      # Data fixing utilities
-│   ├── check.py                    # Diagnostic and testing script
-│   ├── get_school.py               # School data query utilities
-│   ├── debug.py                    # Debug helpers
-│   │
-│   ├── templates/                  # Jinja2 HTML templates
-│   │   ├── index.html              # Home / search page
-│   │   ├── poll.html               # Voting page (v1)
-│   │   ├── poll_v2.html            # Voting page (v2)
-│   │   ├── results_v2.html         # Results display (v2)
+│   ├── templates/                # Jinja2 HTML templates
+│   │   ├── index.html            # Home / search page
+│   │   ├── poll_v2.html          # Voting page
+│   │   ├── results_v2.html       # Results display
 │   │   └── admin/
 │   │       ├── login.html
 │   │       ├── dashboard.html
 │   │       ├── create_poll_v2.html
 │   │       ├── edit_poll_v2.html
-│   │       └── poll_detail_v2.html
+│   │       └── poll_results.html
 │   │
-│   ├── polling.db                  # SQLite database — v1 (git-ignored)
-│   ├── polling_v2.db               # SQLite database — v2 (git-ignored)
-│   └── polling_school.db           # SQLite database — school version (git-ignored)
+│   └── polling_v2.db             # SQLite database (git-ignored)
 │
-├── capstone/                       # Python virtual environment (git-ignored)
-├── CDESchoolDirectoryExport.xlsx   # California school directory data
-├── ZIP_Locale_Detail.csv           # US zip code to city/state mapping
-└── get_city_name.py                # Utility to extract city names from Excel
+├── capstone/                     # Python virtual environment (git-ignored)
+└── CDESchoolDirectoryExport.xlsx # California school directory source data
 ```
 
 ---
@@ -142,46 +112,33 @@ cd project
 
 ### Step 4 — Initialize the database
 
-**For version 2 (recommended):**
-
 ```bash
-# Reset and create the v2 database schema
+# Create a fresh database with all tables
 python reset.py
 
-# Import US zip code data (~40,000 entries)
-python import_zipcode_db.py
-
 # Import California school and district data
-python import_schools_v2.py
+python import_schools.py
+
+# Sync school zip codes into the zipcodes table (enables zip/city search)
+python fix.py
 
 # Create the admin account
-python create_admin_v2.py
-```
-
-> The default admin credentials are **username: `admin`** and **password: `12345678`**.
-> You can change these by modifying `create_admin_v2.py` before running it, or through the script's prompts if it supports interactive input.
-
-**For version 1 (legacy):**
-
-```bash
-python db_init.py
-python import_zipcode_db.py
 python create_admin.py
 ```
+
+> **Default credentials:** username `admin`, password `12345678`.
+> You will be prompted to enter your own credentials when running `create_admin.py`.
+> Change the default password before deploying to any shared or public environment.
 
 ---
 
 ## Running the App
 
 ```bash
-# Version 2 (recommended)
-python main_v2.py
-
-# Version 1 (legacy)
-python main.py
+python app.py
 ```
 
-The app will start at:
+The app starts at:
 
 ```
 http://localhost:5000
@@ -201,44 +158,42 @@ Log in at `/admin/login` with your admin credentials.
 
 ### Dashboard
 
-The admin dashboard (`/admin`) lists all polls with their status (active/inactive), the number of votes received, and associated zip codes or districts.
+Lists all polls with their status (active/inactive), vote count, and associated zip codes or districts.
 
 ### Create a Poll
 
-Go to **Create Poll** in the dashboard. Fill in:
+Go to **Create Poll** in the dashboard and fill in:
 
 | Field | Description |
 |-------|-------------|
 | Title | Short name for the poll |
-| Question | The main question displayed to voters |
+| Question | The main question shown to voters |
 | Poll Type | Single choice, multiple choice, rating scale, or ranked choice |
-| Choices | Add answer options (for single/multiple choice) |
-| Rating Range | Min and max values and labels (for rating scale) |
-| Zip Codes | One or more zip codes this poll appears under |
-| Districts | One or more school districts (v2 only) |
+| Options | Answer choices (for single / multiple / ranked choice) |
+| Rating Range | Min, max, and optional labels (for rating scale) |
+| Zip Codes | Zip codes this poll appears under |
+| Districts | School districts this poll is linked to |
 | Active | Whether the poll is immediately visible to users |
 
 ### Manage Polls
 
-From the admin dashboard you can:
+From the dashboard you can:
 
-- **View results** — see vote counts and percentages per choice
-- **Edit** — update the question, choices, or targeting
-- **Toggle active/inactive** — hide or show the poll to users
-- **Delete** — permanently remove the poll and its votes
-- **Export CSV** — download results as a CSV file
+- **View results** — vote counts and percentages per option
+- **Edit** — update question, options, or geographic targeting
+- **Toggle active/inactive** — show or hide the poll from users
+- **Delete** — permanently remove the poll and all its votes
+- **Export CSV** — download full vote records and summary statistics
 
 ---
 
 ## User Workflow
 
 1. Go to `http://localhost:5000`
-2. Type a **zip code**, **city name**, or **school district** into the search box. The autocomplete will suggest matches.
-3. Select your location to see available polls.
-4. Click on a poll, make your selection, and submit your vote.
+2. Type a **zip code**, **city name**, or **school district name** into the search box. Autocomplete will suggest matches as you type.
+3. Select a location to see available polls.
+4. Open a poll, make your selection, and submit your vote.
 5. Results are displayed immediately after voting.
-
-> **Test data**: Zip codes `11111`, `22222`, `33333`, `44444`, and `55555` have pre-loaded sample polls for development testing.
 
 ---
 
@@ -251,10 +206,11 @@ From the admin dashboard you can:
 | GET | `/` | Home page and search |
 | GET | `/poll/<poll_id>` | View poll and voting form |
 | POST | `/poll/<poll_id>/vote` | Submit a vote |
+| GET | `/poll/<poll_id>/results` | View results |
 | GET | `/api/autocomplete` | Autocomplete for zip codes and cities |
-| GET | `/api/search-cities` | Search cities by name (v2) |
-| GET | `/api/search-schools` | Search school districts (v2) |
-| GET | `/api/get-district-zipcodes` | Get zip codes belonging to a district (v2) |
+| GET | `/api/search-cities` | Search cities by name |
+| GET | `/api/search-schools` | Search school districts by name |
+| GET | `/api/get-district-zipcodes` | Get zip codes belonging to a district |
 
 ### Admin Routes (login required)
 
@@ -264,7 +220,7 @@ From the admin dashboard you can:
 | GET | `/admin/logout` | Admin logout |
 | GET | `/admin` | Admin dashboard |
 | GET/POST | `/admin/poll/create` | Create a new poll |
-| GET | `/admin/poll/<poll_id>` | Poll detail and results |
+| GET | `/admin/poll/<poll_id>` | Poll detail |
 | GET/POST | `/admin/poll/<poll_id>/edit` | Edit a poll |
 | POST | `/admin/poll/<poll_id>/delete` | Delete a poll |
 | POST | `/admin/poll/<poll_id>/toggle` | Toggle active/inactive |
@@ -272,19 +228,20 @@ From the admin dashboard you can:
 
 ---
 
-## Database Overview
-
-### Version 2 Schema
+## Database Schema
 
 | Table | Description |
 |-------|-------------|
 | `polls` | Poll definitions: title, question, type, options, active status |
 | `votes` | Individual vote records linked to a poll |
 | `admins` | Admin users with hashed passwords |
-| `zipcodes` | US zip code directory with city and state |
+| `zipcodes` | Zip code directory with city and state (populated by `fix.py`) |
 | `schools` | California school and district directory |
 | `poll_zipcodes` | Many-to-many: polls linked to zip codes |
-| `poll_districts` | Many-to-many: polls linked to districts |
+| `poll_districts` | Many-to-many: polls linked to school districts |
+
+> **Note:** The `zipcodes` table is populated from school data (California only).
+> Run `fix.py` after `import_schools.py` to enable zip code and city search.
 
 ---
 
@@ -292,22 +249,21 @@ From the admin dashboard you can:
 
 | Script | Purpose |
 |--------|---------|
-| `reset.py` | Wipe and reinitialize the v2 database |
-| `migrate_2_v2.py` | Migrate polls and votes from v1 schema to v2 |
-| `import_zipcode_db.py` | Load `ZIP_Locale_Detail.csv` into the `zipcodes` table |
-| `import_schools_v2.py` | Load `CDESchoolDirectoryExport.xlsx` into the `schools` table |
-| `fix.py` | Patch known data inconsistencies |
-| `check.py` | Run diagnostics against the database |
-| `get_school.py` | Query and inspect school/district records |
-| `debug.py` | Print debug info for development |
+| `reset.py` | Wipe and reinitialize the database |
+| `create_admin.py` | Create an admin account interactively |
+| `import_schools.py` | Load `CDESchoolDirectoryExport.xlsx` into the `schools` table |
+| `fix.py` | Extract zip codes from the `schools` table and sync them to `zipcodes` |
+| `migrate.py` | Add the `poll_districts` table to an existing database |
+| `check.py` | Interactive diagnostic: trace district → zip codes → polls |
 
 ---
 
 ## Known Issues
 
 - **Mobile scaling**: UI layout does not scale correctly on small screens
-- **No IP-based deduplication**: There is currently no mechanism to prevent a single user from voting multiple times
-- **Geographic verification**: The system does not verify that a user is actually located in the zip code or district they are browsing
+- **No vote deduplication**: There is no mechanism to prevent a single user from voting multiple times
+- **Geographic verification**: The system does not verify that a user is actually located in the zip code or district they search for
+- **California only**: Zip code and city search is limited to California school zip codes
 
 ---
 

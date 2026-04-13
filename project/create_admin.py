@@ -1,5 +1,5 @@
 
-from model_v2 import init_db, get_session, Admin
+from model import init_db, get_session, Admin
 import hashlib
 
 def hash_password(password):

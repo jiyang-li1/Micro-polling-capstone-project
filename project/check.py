@@ -1,6 +1,6 @@
-# test_search_by_district.py - Test district search functionality
+# check.py - Test district search functionality
 
-from model_v2 import init_db, get_session, School, ZipCode, Poll, poll_zipcodes
+from model import init_db, get_session, School, ZipCode, Poll, poll_zipcodes
 
 engine = init_db('sqlite:///polling_v2.db')
 db = get_session(engine)

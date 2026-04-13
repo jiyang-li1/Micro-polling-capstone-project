@@ -1,7 +1,7 @@
 # reset_database.py - Reset database, keeping only district data
 
 import os
-from model_v2 import init_db, Base, get_session, School
+from model import init_db, Base, get_session, School
 
 print("\n" + "="*60)
 print("Reset Database")
@@ -51,6 +51,6 @@ print("="*60)
 
 print("\nNext steps:")
 print("1. Run: python import_schools.py  (import district data)")
-print("2. Run: python create_admin_v2.py  (create admin account)")
-print("3. Run: python app_v2.py  (start application)")
+print("2. Run: python create_admin.py   (create admin account)")
+print("3. Run: python app.py            (start application)")
 print()
