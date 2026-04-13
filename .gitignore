@@ -2,6 +2,7 @@ capstone/
 **/capstone/
 *.db
 *.pyc
+__pycache__/
 project/sqlite3.def
 project/sqlite3.dll
 *.exe
