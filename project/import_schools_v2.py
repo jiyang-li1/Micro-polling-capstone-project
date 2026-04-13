@@ -1,7 +1,7 @@
 # import_schools_v2.py - Import district data to school district database
 
 import pandas as pd
-from models_school import init_db, get_session, School
+from model_v2 import init_db, get_session, School
 
 print("\n" + "="*60)
 print("Import district data to school district database")

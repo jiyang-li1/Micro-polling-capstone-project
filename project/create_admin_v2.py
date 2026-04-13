@@ -7,7 +7,7 @@ def hash_password(password):
 
 engine = init_db('sqlite:///polling_v2.db')
 db = get_session(engine)
-
+ 
 
 existing_admin = db.query(Admin).first()
 if existing_admin:
