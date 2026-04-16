@@ -6,3 +6,4 @@ project/sqlite3.def
 project/sqlite3.dll
 *.exe
 .claude/
+project/polling_v2.db
