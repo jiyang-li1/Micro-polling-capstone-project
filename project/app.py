@@ -29,9 +29,16 @@ from sqlalchemy import func
 import os
 import hashlib
 from functools import wraps
+from datetime import timedelta
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'polling-system-secret-key-v2-2026')
+
+@app.template_filter('utc_to_pt')
+def utc_to_pt(dt):
+    if dt is None:
+        return ''
+    return (dt - timedelta(hours=7)).strftime('%Y-%m-%d %H:%M')
 
 
 
