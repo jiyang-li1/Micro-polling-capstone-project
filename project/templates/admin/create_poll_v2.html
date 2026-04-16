@@ -494,7 +494,7 @@
                         <button type="button" class="geo-tab" onclick="switchGeoTab('cities')">
                             By Cities
                         </button> -->
-                        <button type="button" class="geo-tab" onclick="switchGeoTab('districts')">
+                        <button type="button" class="geo-tab active" onclick="switchGeoTab('districts')">
                             By School Districts
                         </button>
                     </div>
@@ -525,7 +525,7 @@
                         </div>
                     </div> -->
                     
-                    <div class="geo-content" id="districtsContent" style="display: none;">
+                    <div class="geo-content" id="districtsContent" style="display: block;">
                         <div class="zipcode-input-area">
                             <input type="text" id="districtSearch" placeholder="Search school district" 
                                    autocomplete="off">
@@ -645,19 +645,6 @@
         }
         
         function updateZipcodeDisplay() {
-            const container = document.getElementById('selectedZipcodes');
-            
-            if (selectedZipcodes.length === 0) {
-                container.innerHTML = '<span style="color: #999; font-size: 14px;">No zip codes selected</span>';
-            } else {
-                container.innerHTML = selectedZipcodes.map(z => `
-                    <span class="selected-item">
-                        ${z}
-                        <span class="remove-item" onclick="removeZipcode('${z}')">Remove</span>
-                    </span>
-                `).join('');
-            }
-            
             document.getElementById('selectedZipcodesData').value = JSON.stringify(selectedZipcodes);
         }
         
