@@ -485,66 +485,18 @@
             <div class="form-group">
                 <label>Target Area <span class="required">*</span></label>
                 <p class="help-text">Select school districts where this poll will be available</p>
-                
-                <div class="geo-selector">
-                    <div class="geo-tabs">
-                        <!-- <button type="button" class="geo-tab active" onclick="switchGeoTab('zipcodes')">
-                            By Zip Codes
-                        </button>
-                        <button type="button" class="geo-tab" onclick="switchGeoTab('cities')">
-                            By Cities
-                        </button> -->
-                        <button type="button" class="geo-tab active" onclick="switchGeoTab('districts')">
-                            By School Districts
-                        </button>
-                    </div>
-                    
-                    <!-- <div class="geo-content" id="zipcodesContent" style="display: block;">
-                        <div class="zipcode-input-area">
-                            <input type="text" id="zipcodeInput" placeholder="Enter zip code (e.g., 94706)" 
-                                   pattern="[0-9]{5}" maxlength="5">
-                            <button type="button" class="btn-add" onclick="addZipcode()">Add</button>
-                        </div>
-                        
-                        <div class="selected-items" id="selectedZipcodes">
-                            <span style="color: #999; font-size: 14px;">No zip codes selected</span>
-                        </div>
-                    </div> -->
-                    
-                    <!-- <div class="geo-content" id="citiesContent" style="display: none;">
-                        <div class="zipcode-input-area">
-                            <input type="text" id="cityInput" placeholder="Search city name (e.g., Berkeley)" 
-                                   autocomplete="off">
-                            <button type="button" class="btn-add" onclick="searchCities()">Search</button>
-                        </div>
-                        
-                        <div class="city-search-results" id="citySearchResults" style="display: none;"></div>
-                        
-                        <div class="selected-items" id="selectedCities">
-                            <span style="color: #999; font-size: 14px;">No cities selected</span>
-                        </div>
-                    </div> -->
-                    
-                    <div class="geo-content" id="districtsContent" style="display: block;">
-                        <div class="zipcode-input-area">
-                            <input type="text" id="districtSearch" placeholder="Search school district" 
-                                   autocomplete="off">
-                        </div>
-                        
-                        <div class="autocomplete-results" id="districtAutocomplete" style="display: none;"></div>
-                        
-                        <div class="selected-items" id="selectedDistricts">
-                            <div id="districtTags">
-                                <span style="color: #999; font-size: 14px;">No districts selected</span>
-                            </div>
-                        </div>
-                        
-                        <!-- <div class="info-box">
-                            When you select a district, all zip codes associated with that district will be automatically included.
-                        </div> -->
+
+                <input type="text" id="districtSearch" placeholder="Search school district name..."
+                       autocomplete="off" style="margin-top: 10px;">
+
+                <div class="autocomplete-results" id="districtAutocomplete" style="display: none;"></div>
+
+                <div class="selected-items" style="margin-top: 10px;">
+                    <div id="districtTags">
+                        <span style="color: #999; font-size: 14px;">No districts selected</span>
                     </div>
                 </div>
-                
+
                 <input type="hidden" id="selectedZipcodesData" name="zipcodes" value="[]">
                 <input type="hidden" id="selectedCitiesData" name="cities" value="[]">
                 <input type="hidden" id="selectedDistrictsData" name="districts" value="[]">
@@ -559,10 +511,8 @@
 
     <script>
         let selectedZipcodes = [];
-        let selectedCities = [];
         let selectedDistricts = [];
         let optionCount = 2;
-        let districtDebounceTimer;
         
         // Poll type selection
         document.querySelectorAll('.poll-type-card').forEach(card => {
@@ -585,7 +535,7 @@
         });
         
         document.getElementById('optionsSection').style.display = 'block';
-        
+
         // Options management
         function addOption() {
             optionCount++;
@@ -598,265 +548,105 @@
             `;
             container.appendChild(div);
         }
-        
+
         function removeOption(btn) {
             btn.parentElement.remove();
         }
-        
-        // Geographic tab switching
-        function switchGeoTab(tab) {
-            document.querySelectorAll('.geo-tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.geo-content').forEach(c => c.style.display = 'none');
-            
-            event.target.classList.add('active');
-            
-            if (tab === 'zipcodes') {
-                document.getElementById('zipcodesContent').style.display = 'block';
-            } else if (tab === 'cities') {
-                document.getElementById('citiesContent').style.display = 'block';
-            } else if (tab === 'districts') {
-                document.getElementById('districtsContent').style.display = 'block';
-            }
-        }
-        
-        // Zipcode management
-        function addZipcode() {
-            const input = document.getElementById('zipcodeInput');
-            const zipcode = input.value.trim();
-            
-            if (!zipcode || zipcode.length !== 5 || !/^\d{5}$/.test(zipcode)) {
-                alert('Please enter a valid 5-digit zip code');
-                return;
-            }
-            
-            if (selectedZipcodes.includes(zipcode)) {
-                alert('This zip code is already added');
-                return;
-            }
-            
-            selectedZipcodes.push(zipcode);
-            updateZipcodeDisplay();
-            input.value = '';
-        }
-        
-        function removeZipcode(zipcode) {
-            selectedZipcodes = selectedZipcodes.filter(z => z !== zipcode);
-            updateZipcodeDisplay();
-        }
-        
-        function updateZipcodeDisplay() {
-            document.getElementById('selectedZipcodesData').value = JSON.stringify(selectedZipcodes);
-        }
-        
-        // City management
-        async function searchCities() {
-            const input = document.getElementById('cityInput');
-            const query = input.value.trim();
-            
-            if (query.length < 2) {
-                alert('Please enter at least 2 characters');
-                return;
-            }
-            
-            try {
-                const response = await fetch(`/api/search-cities?q=${encodeURIComponent(query)}`);
-                const data = await response.json();
-                
-                displayCityResults(data.cities);
-            } catch (error) {
-                console.error('Error searching cities:', error);
-                alert('Error searching cities');
-            }
-        }
-        
-        function displayCityResults(cities) {
-            const container = document.getElementById('citySearchResults');
-            
-            if (cities.length === 0) {
-                container.innerHTML = '<div style="padding: 15px; text-align: center; color: #999;">No cities found</div>';
-                container.style.display = 'block';
-                return;
-            }
-            
-            container.innerHTML = cities.map(city => `
-                <div class="city-result-item" onclick='selectCity(${JSON.stringify(city)})'>
-                    <div class="city-result-name">${city.city}, ${city.state}</div>
-                    <div class="city-result-info">${city.zipcode_count} zip code(s)</div>
-                </div>
-            `).join('');
-            
-            container.style.display = 'block';
-        }
-        
-        function selectCity(city) {
-            const key = `${city.city}, ${city.state}`;
-            
-            if (selectedCities.find(c => `${c.city}, ${c.state}` === key)) {
-                alert('This city is already added');
-                return;
-            }
-            
-            selectedCities.push(city);
-            updateCityDisplay();
-            document.getElementById('citySearchResults').style.display = 'none';
-            document.getElementById('cityInput').value = '';
-        }
-        
-        function removeCity(index) {
-            selectedCities.splice(index, 1);
-            updateCityDisplay();
-        }
-        
-        function updateCityDisplay() {
-            const container = document.getElementById('selectedCities');
-            
-            if (selectedCities.length === 0) {
-                container.innerHTML = '<span style="color: #999; font-size: 14px;">No cities selected</span>';
-            } else {
-                container.innerHTML = selectedCities.map((city, index) => `
-                    <span class="selected-item">
-                        ${city.city}, ${city.state} (${city.zipcode_count} zips)
-                        <span class="remove-item" onclick="removeCity(${index})">Remove</span>
-                    </span>
-                `).join('');
-            }
-            
-            document.getElementById('selectedCitiesData').value = JSON.stringify(selectedCities);
-        }
-        
+
         // District management
+        let debounceTimer;
         const districtSearch = document.getElementById('districtSearch');
         const districtAutocomplete = document.getElementById('districtAutocomplete');
         const districtTags = document.getElementById('districtTags');
-        
+
         districtSearch.addEventListener('input', function() {
-            clearTimeout(districtDebounceTimer);
+            clearTimeout(debounceTimer);
             const query = this.value.trim();
-            
             if (query.length < 2) {
                 districtAutocomplete.style.display = 'none';
                 return;
             }
-            
-            districtDebounceTimer = setTimeout(async () => {
+            debounceTimer = setTimeout(async () => {
                 try {
-                    const response = await fetch(`/api/search-schools?q=${encodeURIComponent(query)}`);
-                    const data = await response.json();
-                    
-                    console.log('District search results:', data);
-                    
+                    const res = await fetch(`/api/search-schools?q=${encodeURIComponent(query)}`);
+                    const data = await res.json();
                     if (data.schools && data.schools.length > 0) {
-                        displayDistrictResults(data.schools);
+                        districtAutocomplete.innerHTML = '';
+                        data.schools.forEach(school => {
+                            const item = document.createElement('div');
+                            item.className = 'autocomplete-item';
+                            item.innerHTML = `<strong>${school.district}</strong><br>
+                                <small style="color:#666">${school.city}, ${school.county} County</small>`;
+                            item.addEventListener('click', () => {
+                                selectDistrict(school);
+                                districtSearch.value = '';
+                                districtAutocomplete.style.display = 'none';
+                            });
+                            districtAutocomplete.appendChild(item);
+                        });
+                        districtAutocomplete.style.display = 'block';
                     } else {
                         districtAutocomplete.style.display = 'none';
                     }
-                } catch (error) {
-                    console.error('District search error:', error);
+                } catch (e) {
+                    console.error('District search error:', e);
                 }
             }, 300);
         });
-        
-        function displayDistrictResults(schools) {
-            districtAutocomplete.innerHTML = '';
-            
-            schools.forEach(school => {
-                const item = document.createElement('div');
-                item.className = 'autocomplete-item';
-                item.innerHTML = `
-                    <strong>${school.district}</strong><br>
-                    <small style="color: #666;">${school.city}, ${school.county} County</small>
-                `;
-                
-                item.addEventListener('click', () => {
-                    addDistrict(school);
-                    districtSearch.value = '';
-                    districtAutocomplete.style.display = 'none';
-                });
-                
-                districtAutocomplete.appendChild(item);
-            });
-            
-            districtAutocomplete.style.display = 'block';
-        }
-        
-        async function addDistrict(school) {
-            if (selectedDistricts.some(d => d.district === school.district)) {
-                alert('This district is already selected');
-                return;
-            }
-            
+
+        districtSearch.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') e.preventDefault();
+        });
+
+        async function selectDistrict(school) {
+            if (selectedDistricts.some(d => d.district === school.district)) return;
             try {
-                const response = await fetch(`/api/get-district-zipcodes?district=${encodeURIComponent(school.district)}`);
-                const data = await response.json();
-                
-                console.log('District zipcodes response:', data);
-                
-                if (data.zipcodes && data.zipcodes.length > 0) {
-                    selectedDistricts.push({
-                        district: school.district,
-                        county: school.county,
-                        city: school.city,
-                        zipcode_count: data.zipcodes.length,
-                        zipcodes: data.zipcodes
-                    });
-                    
-                    data.zipcodes.forEach(zc => {
-                        const zipCode = String(zc.zip_code);
-                        if (!selectedZipcodes.includes(zipCode)) {
-                            selectedZipcodes.push(zipCode);
-                        }
-                    });
-                    
-                    updateDistrictDisplay();
-                    updateZipcodeDisplay();
-                }
-            } catch (error) {
-                console.error('Error fetching district zip codes:', error);
+                const res = await fetch(`/api/get-district-zipcodes?district=${encodeURIComponent(school.district)}`);
+                const data = await res.json();
+                const zipcodes = data.zipcodes || [];
+                selectedDistricts.push({
+                    district: school.district,
+                    county: school.county,
+                    city: school.city,
+                    zipcodes: zipcodes
+                });
+                zipcodes.forEach(zc => {
+                    const z = String(zc.zip_code);
+                    if (!selectedZipcodes.includes(z)) selectedZipcodes.push(z);
+                });
+                renderDistricts();
+            } catch (e) {
+                console.error('Error loading district:', e);
             }
         }
-        
+
         function removeDistrict(index) {
-            const district = selectedDistricts[index];
-            
-            district.zipcodes.forEach(zc => {
-                const idx = selectedZipcodes.indexOf(String(zc.zip_code));
-                if (idx > -1) {
-                    selectedZipcodes.splice(idx, 1);
-                }
+            const removed = selectedDistricts.splice(index, 1)[0];
+            removed.zipcodes.forEach(zc => {
+                const i = selectedZipcodes.indexOf(String(zc.zip_code));
+                if (i > -1) selectedZipcodes.splice(i, 1);
             });
-            
-            selectedDistricts.splice(index, 1);
-            updateDistrictDisplay();
-            updateZipcodeDisplay();
+            renderDistricts();
         }
-        
-        function updateDistrictDisplay() {
+
+        function renderDistricts() {
             if (selectedDistricts.length === 0) {
-                districtTags.innerHTML = '<span style="color: #999; font-size: 14px;">No districts selected</span>';
+                districtTags.innerHTML = '<span style="color:#999;font-size:14px">No districts selected</span>';
             } else {
-                districtTags.innerHTML = selectedDistricts.map((district, index) => `
-                    <span class="tag">
-                        ${district.district}
-                        <button type="button" onclick="removeDistrict(${index})">Remove</button>
-                    </span>
-                `).join('');
+                districtTags.innerHTML = selectedDistricts.map((d, i) => `
+                    <span class="tag">${d.district}
+                        <button type="button" onclick="removeDistrict(${i})">&#x2715;</button>
+                    </span>`).join('');
             }
-            
             document.getElementById('selectedDistrictsData').value = JSON.stringify(selectedDistricts);
+            document.getElementById('selectedZipcodesData').value = JSON.stringify(selectedZipcodes);
         }
-        
+
         // Form validation
         document.getElementById('pollForm').addEventListener('submit', function(e) {
-            if (selectedZipcodes.length === 0 && selectedCities.length === 0 && selectedDistricts.length === 0) {
+            if (selectedDistricts.length === 0) {
                 e.preventDefault();
-                alert('Please select at least one zip code, city, or school district');
-            }
-        });
-        
-        // Keyboard shortcut for district search
-        document.getElementById('districtSearch').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
+                alert('Please select at least one school district');
             }
         });
     </script>
