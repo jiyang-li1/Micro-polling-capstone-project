@@ -484,7 +484,7 @@
             
             <div class="form-group">
                 <label>Target Area <span class="required">*</span></label>
-                <p class="help-text">Select zip codes, cities, or school districts where this poll will be available</p>
+                <p class="help-text">Select school districts where this poll will be available</p>
                 
                 <div class="geo-selector">
                     <div class="geo-tabs">
@@ -527,7 +527,7 @@
                     
                     <div class="geo-content" id="districtsContent" style="display: none;">
                         <div class="zipcode-input-area">
-                            <input type="text" id="districtSearch" placeholder="Search school district (e.g., Alameda County Office of Education)" 
+                            <input type="text" id="districtSearch" placeholder="Search school district" 
                                    autocomplete="off">
                         </div>
                         
@@ -777,10 +777,7 @@
                 item.className = 'autocomplete-item';
                 item.innerHTML = `
                     <strong>${school.district}</strong><br>
-                    <small style="color: #666;">
-                        ${school.city}, ${school.county} County | 
-                        ${school.zipcode_count} zip code${school.zipcode_count !== 1 ? 's' : ''}
-                    </small>
+                    <small style="color: #666;">${school.city}, ${school.county} County</small>
                 `;
                 
                 item.addEventListener('click', () => {
@@ -825,12 +822,9 @@
                     
                     updateDistrictDisplay();
                     updateZipcodeDisplay();
-                } else {
-                    alert('No zip codes found for this district');
                 }
             } catch (error) {
                 console.error('Error fetching district zip codes:', error);
-                alert('Error loading district zip codes');
             }
         }
         
@@ -855,7 +849,7 @@
             } else {
                 districtTags.innerHTML = selectedDistricts.map((district, index) => `
                     <span class="tag">
-                        ${district.district} (${district.zipcode_count} zips)
+                        ${district.district}
                         <button type="button" onclick="removeDistrict(${index})">Remove</button>
                     </span>
                 `).join('');
@@ -872,18 +866,10 @@
             }
         });
         
-        // Keyboard shortcuts
-        document.getElementById('zipcodeInput').addEventListener('keypress', function(e) {
+        // Keyboard shortcut for district search
+        document.getElementById('districtSearch').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 e.preventDefault();
-                addZipcode();
-            }
-        });
-        
-        document.getElementById('cityInput').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                searchCities();
             }
         });
     </script>
