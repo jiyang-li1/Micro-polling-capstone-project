@@ -505,10 +505,11 @@ def admin_create_poll():
             elif poll_type == 'rating_scale':
                 poll.rating_min = int(request.form.get('rating_min', 1))
                 poll.rating_max = int(request.form.get('rating_max', 5))
-                
+                poll.set_options([])
+
                 label_min = request.form.get('rating_label_min', '').strip()
                 label_max = request.form.get('rating_label_max', '').strip()
-                
+
                 if label_min or label_max:
                     labels = {}
                     if label_min:
@@ -516,7 +517,7 @@ def admin_create_poll():
                     if label_max:
                         labels[str(poll.rating_max)] = label_max
                     poll.set_rating_labels(labels)
-            
+
             # Handle geographic location
             zipcodes_json = request.form.get('zipcodes', '[]')
             cities_json = request.form.get('cities', '[]')
