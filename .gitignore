@@ -1,6 +1,5 @@
 capstone/
 **/capstone/
-*.db
 *.pyc
 __pycache__/
 project/sqlite3.def
