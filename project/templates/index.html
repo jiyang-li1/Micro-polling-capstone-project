@@ -271,8 +271,7 @@
                 
                 if (data.schools && data.schools.length > 0) {
                     data.schools.forEach(school => {
-                        const zipcodeCount = school.zipcode_count || 0;
-                        const detail = `${school.city}, ${school.county} County (${zipcodeCount} zip code${zipcodeCount !== 1 ? 's' : ''})`;
+                        const detail = `${school.city}, ${school.county} County`;
                         
                         results.push({
                             display: school.district,
