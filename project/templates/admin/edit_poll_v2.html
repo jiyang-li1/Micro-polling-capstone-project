@@ -276,23 +276,6 @@
             </div>
             {% endif %}
             
-            <!-- Geographic Information (Read-only for now) -->
-            <div class="form-group">
-                <label>Current Locations</label>
-                <div style="padding: 15px; background: #f8f9fa; border-radius: 5px;">
-                    {% for city in poll.get_cities() %}
-                    <span style="display: inline-block; padding: 5px 10px; background: #e3f2fd; border-radius: 12px; margin: 5px;">
-                        {{ city.city }}, {{ city.state }}
-                    </span>
-                    {% endfor %}
-                    <br><br>
-                    <span style="color: #666; font-size: 14px;">
-                        {{ poll.zipcodes|length }} zip code(s) associated
-                    </span>
-                </div>
-                <p class="help-text">Location editing not yet implemented. Create a new poll to change locations.</p>
-            </div>
-            
             <!-- Hidden fields to preserve locations -->
             <input type="hidden" name="zipcodes" value='{{ poll.zipcodes|map(attribute="zip_code")|list|tojson }}'>
             <input type="hidden" name="cities" value='{{ poll.get_cities()|tojson }}'>
